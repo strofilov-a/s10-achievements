@@ -42,6 +42,7 @@ writeFileSync(relJs, js);
 writeFileSync(join(REL, 'achievements.html'), read('achievements.html').replace('?v=0', `?v=${stamp}`));
 // the brief for the S10 frontend developer, and the contract it rests on
 writeFileSync(join(REL, 'README.md'), readFileSync(join(ROOT, 'frontend/ЗАДАНИЕ.md'), 'utf8').replaceAll('{{release}}', stamp));
+for (const f of ['TZ.md', 'TZ.pdf']) writeFileSync(join(REL, f), readFileSync(join(ROOT, 'docs', f))); // the rules behind it all
 writeFileSync(join(REL, 'API.md'), readFileSync(join(ROOT, 'contract/API.md'), 'utf8').replace('Примеры ответов на каждое состояние лежат в [`mock/`](mock).', 'Примеры ответов на каждое состояние: https://github.com/strofilov-a/s10-achievements/tree/main/contract/mock.'));
 mkdirSync(join(ROOT, 'dist'), { recursive: true });
 writeFileSync(join(ROOT, 'dist/achievements.js'), src);

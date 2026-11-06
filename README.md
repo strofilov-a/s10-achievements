@@ -16,6 +16,7 @@
 | `release/frontend`, `release/backend` | Что уходит программистам S10, с инструкцией сверху |
 | `tests/` | `frontend.mjs` — демо в Chrome; `live.mjs` — сборка для сайта против настоящего бэкенда |
 | `tools/` | `release-backend.sh`, `zip.sh`; `export-prototype.mjs` — разовый перенос каталога из прототипов |
+| `docs/TZ.md`, `docs/TZ.pdf` | ТЗ: правила, экраны, уведомления |
 | `assets/` | SVG значков званий и цвета уровней, для презентаций и макетов |
 
 ## Команды
