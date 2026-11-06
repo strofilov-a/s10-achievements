@@ -524,6 +524,7 @@ dialog.narrow { max-width: 520px; }
     <section class="panel s12" aria-labelledby="sh-h">
       <div class="ph"><h2 id="sh-h">Витрина учеников</h2><span class="chip" id="sh-chip"></span><button class="linkbtn edit" type="button" data-edit="1">Изменить</button></div>
       <div class="bibs c6" id="showcase"></div>
+      <div class="foot" id="sh-foot"></div>
     </section>
   </div>
 
@@ -810,7 +811,7 @@ const S = [
 ];
 /* ---------- prototype states (the URL hash): #few (a new coach, two students), #empty (no students yet), #public (as an athlete sees the coach), #loading, #error ---------- */
 const DEMO = location.hash.slice(1);
-const VIEW = DEMO === 'public' ? 'friend' : 'own'; // the shared card reads it: another person sees the levels and their dates, not the figures
+const VIEW = ['public', 'hidden', 'profile'].includes(DEMO) ? 'friend' : 'own'; // the shared card reads it: another person sees the levels and their dates, not the figures
 addEventListener('hashchange', () => location.reload());
 if (DEMO === 'empty' || DEMO === 'few') {
   const few = DEMO === 'few';
@@ -885,7 +886,7 @@ A.forEach(a => console.assert(a.d.length === tierOf(a), 'one date per reached le
 A.forEach(a => console.assert(!a.lab || a.lab.length === a.th.length, 'a label per level', a.id));
 
 /* ---------- state ---------- */
-const state = { show: DEMO === 'empty' || DEMO === 'few' ? [] : ['m1', 'm2', 'k1', 'k2', 'o1'] };
+const state = { show: DEMO === 'empty' || DEMO === 'few' ? [] : ['m1', 'm2', 'k1', 'k2', 'o1'], vis: 'all' }; // vis: who sees the coach's achievements
 const earned = A.filter(a => tierOf(a) > 0);
 const notEarned = A.filter(a => tierOf(a) === 0 && a.kind !== 'secret');
 const secrets = A.filter(locked);
@@ -944,6 +945,7 @@ function renderStudents() {
   }).join('');
 }
 function renderShowcase() {
+  $('#sh-foot').innerHTML = VIEW === 'own' ? `<button class="linkbtn" type="button" id="vis-open">Кто видит: ${VIS_C[state.vis].short}</button>` : '';
   $('#sh-chip').textContent = `${state.show.length} из ${SHOW_SLOTS}`;
   const cells = state.show.map(id => sbib(ACH[id], 'button'));
   $('#sh-h').parentNode.querySelector('.edit').hidden = !S.length || VIEW !== 'own';
@@ -975,7 +977,7 @@ function renderAll() {
 /* ---------- dialogs ---------- */
 const dlg = $('#dlg');
 const closeBtn = `<button class="x" type="button" id="d-close" aria-label="Закрыть"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round" aria-hidden="true">${ICON.close}</svg></button>`;
-function show(html) { $('#dlg-body').innerHTML = html; if (!dlg.open) dlg.showModal(); }
+function show(html, narrow = false) { dlg.classList.toggle('narrow', narrow); $('#dlg-body').innerHTML = html; if (!dlg.open) dlg.showModal(); }
 // how the figure came about: the coach's own data, the S10 average and the value with both
 function dataNote(a) {
   const o = a.obs;
@@ -1069,6 +1071,96 @@ document.addEventListener('click', e => {
   const ac = e.target.closest('[data-ach]'); if (ac) { openStudent(ACH[ac.dataset.ach].sid); }
 });
 
+/* ---------- who sees, the moments, the profile ---------- */
+const VIS_C = {
+  all: { short: 'все', name: 'Все', note: 'Любой, кто откроет ваш профиль тренера' },
+  students: { short: 'мои ученики', name: 'Мои ученики', note: 'Только те, кто у вас занимается' },
+  me: { short: 'только я', name: 'Только я', note: 'Звание и достижения видны только вам' },
+};
+function openVis() {
+  show(`<div class="sd">${closeBtn}
+    <h2 id="dlg-t">Кто видит ваши достижения</h2>
+    <p class="dnote">Звание, сильные стороны и витрина учеников в вашем профиле тренера</p>
+    <fieldset class="opts"><legend class="vh">Кто видит</legend>${Object.entries(VIS_C).map(([k, v]) => `<label class="opt"><input type="radio" name="vis" value="${k}"${state.vis === k ? ' checked' : ''}><span><b>${v.name}</b><small>${v.note}</small></span></label>`).join('')}</fieldset>
+    <p class="dnote">Список учеников, цифры и прогресс видите только вы.</p>
+    <div class="dact"><button class="btn btn-cta" type="button" id="vis-done">Готово</button></div>
+  </div>`, true);
+}
+const C_EVENTS = A.flatMap(a => a.d.map((d, i) => ({ a, i, d }))).sort((x, y) => y.d.localeCompare(x.d)); // every level reached, newest first
+// the day the current rank came: the levels in date order until their points pass its threshold
+const rankDate = (() => {
+  if (!rankIdx) return null;
+  let sum = 0;
+  for (const e of [...C_EVENTS].reverse()) { sum += levelAt(e.a, e.i).pts; if (sum >= C_RANKS[rankIdx].from) return e.d; }
+  return null;
+})();
+function copy(text) {
+  try { navigator.clipboard.writeText(text).then(() => toast('Текст для публикации скопирован'), () => toast(text)); } catch { toast(text); }
+}
+// the moment a level comes: the card, its points and the rank bar moving on by them
+function openLevelUp(id) {
+  const a = byId[id], i = tierOf(a) - 1, lv = levelAt(a, i);
+  const r = C_RANKS[rankIdx], nx = C_RANKS[rankIdx + 1], goal = nx ? nx.from : totalPts, pct = p => `${Math.min(100, p / goal * 100).toFixed(1)}%`;
+  const value = (a.got || `${bibNo(a, i)} ${bibUnit(a, i).replace(/ на .*$/, '')}`).trim();
+  dlg.dataset.id = id;
+  show(`<div class="dl cel">${closeBtn}${bib(a, 'div', ' big')}<div>
+    <p class="eb">Новый уровень · ${fmtDate(a.d[i])}</p>
+    <h2 id="dlg-t">${esc(a.name)}</h2>
+    <p class="dcond">${lv.name} · ${esc(value)}</p>
+    <p class="pts">+${lv.pts}<small>${plural(lv.pts, U.pt)}</small></p>
+    <div class="crank">${emblem(r)}<span class="pgc"><span class="row"><b>${r.name}</b><span>${fmtInt(totalPts)}${nx ? ` / ${fmtInt(nx.from)}` : ''}</span></span><span class="track"><span id="cel-bar" style="width:${pct(totalPts - lv.pts)}"></span></span></span></div>
+    <p class="dnote">Этот уровень есть у ${fmtPct(rarity(a, i))} тренеров S10</p>
+    <div class="dact"><button class="btn btn-cta" type="button" id="l-share">Поделиться</button><button class="btn btn-out" type="button" id="l-all">Все достижения</button></div>
+  </div></div>`);
+  requestAnimationFrame(() => requestAnimationFrame(() => { $('#cel-bar').style.width = pct(totalPts); }));
+}
+function openRankUp() {
+  const r = C_RANKS[rankIdx], nx = C_RANKS[rankIdx + 1];
+  show(`<div class="sd">${closeBtn}<div class="ru">${emblem(r)}
+    <p class="eb">Новое тренерское звание${rankDate ? ` · ${fmtDate(rankDate)}` : ''}</p>
+    <h2 id="dlg-t">${r.name}</h2>
+    <p class="dcond">У вас ${fmtInt(totalPts)} ${plural(totalPts, U.pt)}.${nx ? ` До звания «${nx.name}» осталось ${fmtInt(nx.from - totalPts)}.` : ' Это высшее звание.'}</p>
+    <div class="dact"><button class="btn btn-cta" type="button" id="r-share">Поделиться</button><button class="btn btn-out" type="button" id="r-road">Все звания</button></div>
+  </div></div>`, true);
+}
+dlg.addEventListener('click', e => {
+  if (e.target.closest('#vis-done')) dlg.close();
+  if (e.target.closest('#l-share')) copy(`Новый уровень на S10.run: «${byId[dlg.dataset.id].name}»`);
+  if (e.target.closest('#r-share')) copy(`Моё тренерское звание на S10.run: ${C_RANKS[rankIdx].name}`);
+  const go = e.target.closest('#l-all') ? '#all-h' : e.target.closest('#r-road') ? '#rank' : '';
+  if (go) { dlg.close(); $(go).scrollIntoView({ behavior: 'smooth', block: 'start' }); }
+});
+dlg.addEventListener('change', e => {
+  if (e.target.name !== 'vis') return;
+  state.vis = e.target.value; renderShowcase();
+  toast(`Достижения видят: ${VIS_C[state.vis].short}`);
+});
+// someone else opens a coach who hid the achievements
+function renderHidden() {
+  const head = $('.phead').outerHTML;
+  $('main').innerHTML = `<h1 class="vh">Достижения тренера</h1>${head}<div class="state"><h2>${esc(COACH.name)} скрывает свои достижения</h2><p>Звание и достижения видны только самому тренеру.</p></div>`;
+  $('.bar .ava').textContent = 'А3';
+}
+// a mock of the coach's profile with the rank and three strengths in it, as anyone opening it sees it
+function renderProfile() {
+  const r = C_RANKS[rankIdx], nx = C_RANKS[rankIdx + 1], goal = nx ? nx.from : totalPts;
+  const best = [...earned.filter(a => a.kind === 'secret'), ...earned.filter(a => a.kind === 'tier' && tierOf(a) >= 3).sort(byLevel)].slice(0, 3);
+  $('main').innerHTML = `<h1 class="vh">Профиль тренера</h1>
+    <div class="pf">
+      <div class="pf-av"><span class="pf-ph"><span aria-hidden="true">${esc(COACH.initials)}</span>${emblem(r).replace('<svg', `<svg role="img" aria-label="Тренерское звание «${r.name}»"`)}</span></div>
+      <div><p class="pf-n">${esc(COACH.name)}<span class="pf-btn">Поделиться профилем</span></p>
+        <dl class="pf-dl"><dt>Ученики</dt><dd>${S.length}</dd><dt>На S10</dt><dd>${byId.exp.val} ${plural(byId.exp.val, U.mon)}</dd><dt>Клуб</dt><dd>Не выбран</dd></dl></div>
+      <div class="pf-subs" aria-hidden="true"><span>Подписчики (12)</span><span>Подписки (3)</span></div>
+    </div>
+    <section class="pfa" aria-labelledby="pfa-h">
+      <div class="ph"><h2 id="pfa-h">Достижения тренера</h2><a class="act" href="#public">Все достижения</a></div>
+      <a class="pfa-rank" href="#public">${emblem(r)}<span><span class="rn">${r.name}</span><span class="pgc"><span class="track"><span style="width:${(totalPts / goal * 100).toFixed(1)}%"></span></span><span class="row"><span><b>${fmtInt(totalPts)}</b>${nx ? ` / ${fmtInt(nx.from)}` : ''}</span></span></span></span></a>
+      <div class="stack">${best.map(a => { const t = tierOf(a); return `<button class="shw" type="button" data-open="${a.id}">${miniBib(a, t - 1)}<span><span class="n">${esc(a.name)}${a.count ? ` · ${a.count}×` : ''}</span><span class="m">${esc(levelOf(a, t).name)} · ${fmtDate(a.d[t - 1])}</span></span></button>`; }).join('')}</div>
+    </section>
+    <p class="pf-note">Макет: блок «Достижения тренера» в профиле тренера. Его видит любой, кто открыл профиль, если тренер не скрыл достижения: звание, три сильные стороны и ссылка на все. Значок звания стоит на аватаре. Остальная часть профиля не меняется.</p>`;
+  $('.bar .ava').textContent = 'А3';
+}
+
 /* ---------- notifications ---------- */
 let bellSeen = false;
 function notes() {
@@ -1081,7 +1173,9 @@ function notes() {
     html: `<span class="mb" style="${look(LV[x.lv])}" aria-hidden="true"><i></i><b>${esc(x.mini)}</b></span><span class="nt"><b>Новое у ученика: «${esc(x.name)}»</b><small>${esc(stById[x.sid].name)} · ${esc(x.lv)} · ${fmtDate(x.date)}</small></span>` }));
   const more = A.filter(a => a.count).map(a => { const w = [...a.who].sort((x, y) => y.date.localeCompare(x.date))[0];
     return { key: `lv:${a.id}`, d: w.date, html: `<span class="mb" style="${look(LEGEND)}" aria-hidden="true"><i></i><b>${a.count}×</b></span><span class="nt"><b>«${esc(a.name)}»: теперь ${a.count}×</b><small>${esc(w.name)} · ${w.time} · ${fmtDate(w.date)}</small></span>` }; });
-  const n = [...ev.filter(e => !more.some(m => m.key === e.key)), ...got, ...more].sort((x, y) => y.d.localeCompare(x.d));
+  const r = C_RANKS[rankIdx];
+  const rk = rankDate ? [{ key: 'rank:', d: rankDate, html: `${emblem(r)}<span class="nt"><b>Новое звание: ${r.name}</b><small>от ${fmtInt(r.from)} ${plural(r.from, U.pt)} · ${fmtDate(rankDate)}</small></span>` }] : [];
+  const n = [...ev.filter(e => !more.some(m => m.key === e.key)), ...got, ...more, ...rk].sort((x, y) => y.d.localeCompare(x.d));
   n.forEach((x, k) => { x.fresh = k === 0; });
   S.filter(s => s.consent === 'pending').forEach(s => n.unshift({ key: `st:${s.id}`, html: `<span class="ava" aria-hidden="true">${esc(s.ini)}</span><span class="nt"><b>Ждём ответа: ${esc(s.name)}</b><small>Запрос на показ достижений отправлен</small></span>` }));
   return n;
@@ -1106,12 +1200,13 @@ document.addEventListener('click', e => {
   if (nt) {
     toggleBell(false);
     const [k, v] = nt.dataset.note.split(':');
-    if (k === 'lv') openAchievement(v); else if (k === 'st') openStudent(v); else openStudent(ACH[v].sid);
+    if (k === 'lv') openAchievement(v); else if (k === 'st') openStudent(v); else if (k === 'rank') openRankUp(); else openStudent(ACH[v].sid);
     return;
   }
   if (e.target.closest('#bell')) { toggleBell(); return; }
   if (!e.target.closest('#nmenu')) toggleBell(false);
   if (e.target.closest('#retry')) location.hash = '';
+  if (e.target.closest('#vis-open')) openVis();
 }, true);
 document.addEventListener('keydown', e => { if (e.key === 'Escape' && !$('#nmenu').hidden) { toggleBell(false); $('#bell').focus(); } });
 
@@ -1133,10 +1228,14 @@ function renderError() {
 renderBell();
 if (DEMO === 'loading') renderLoading();
 else if (DEMO === 'error') renderError();
+else if (DEMO === 'hidden') renderHidden();
+else if (DEMO === 'profile') renderProfile();
 else {
   $('#cm').textContent = `S10 · ${S.length} ${plural(S.length, U.stu)}`;
   if (VIEW === 'friend') { $('#students').closest('section').hidden = true; $('.bar .ava').textContent = 'А3'; } // the students are the coach's own business; the bar is the viewer's
   renderRank(); renderStudents(); renderShowcase(); renderAll();
+  if (DEMO === 'levelup') openLevelUp(C_EVENTS.find(e => e.a.kind === 'tier').a.id);
+  if (DEMO === 'rankup' && rankIdx) openRankUp();
 }
 
 </script>
@@ -1145,7 +1244,7 @@ else {
   <span>Прототип</span>
   <a href="index.html">Атлет</a>
   <a href="coach.html" class="on" aria-current="page">Тренер</a>
-  <label class="demo-st"><span class="vh">Состояние</span><select id="demo-st"><option value="">Обычное</option><option value="few">Новый тренер</option><option value="empty">Нет учеников</option><option value="public">Глазами атлета</option><option value="loading">Загрузка</option><option value="error">Ошибка</option></select></label>
+  <label class="demo-st"><span class="vh">Состояние</span><select id="demo-st"><option value="">Обычное</option><option value="few">Новый тренер</option><option value="empty">Нет учеников</option><option value="levelup">Новый уровень</option><option value="rankup">Новое звание</option><option value="public">Глазами атлета</option><option value="hidden">Достижения скрыты</option><option value="profile">Профиль с виджетом</option><option value="loading">Загрузка</option><option value="error">Ошибка</option></select></label>
 </nav>
 <script>
 (() => { const sel = document.getElementById('demo-st'); sel.value = location.hash.slice(1); if (sel.selectedIndex < 0) sel.value = ''; sel.addEventListener('change', () => { location.hash = sel.value; }); })();
