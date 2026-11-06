@@ -753,11 +753,9 @@ function emblem(r) {
 const ATHLETE_PAGE = 'index.html'; // the athlete achievements prototype
 const COACH = { name: 'Тренер', initials: 'Т', students: 6 };
 // coach ranks: the same eight metals, their own thresholds and a navy frame (see PLATE)
-// the rank counts the six strongest achievements and every opened secret, so a weak side does not pull a coach down
-// (a coach of world-class runners need not show a big team progress): an average coach, about Platinum in each, ~1 100,
-// a strong one ~2 900, the very best ~5 500 and up
-const C_RANKS = RANKS.map((r, i) => ({ ...r, from: [0, 150, 500, 1000, 1800, 2800, 4000, 5500][i] }));
-const RANK_BEST = 6;
+// the rank is the sum of all ten achievements and every opened secret; an average coach, about Platinum in each, sits near
+// Титан, a strong one at Мастер, the very best at Элита (thresholds to check against the real spread after the history recount)
+const C_RANKS = RANKS.map((r, i) => ({ ...r, from: [0, 100, 300, 800, 1600, 3000, 5000, 8000][i] }));
 const U = { mon: ['месяц', 'месяца', 'месяцев'], min: ['минута', 'минуты', 'минут'], pt: ['очко', 'очка', 'очков'], stu: ['ученик', 'ученика', 'учеников'], rep: ['отчёт', 'отчёта', 'отчётов'], race: ['целевой старт', 'целевых старта', 'целевых стартов'], plan: ['мастер-план', 'мастер-плана', 'мастер-планов'] };
 const CATS = [
   { id: 'care', name: 'Забота' }, { id: 'keep', name: 'Постоянство' }, { id: 'method', name: 'Методика' },
@@ -884,8 +882,7 @@ const notEarned = A.filter(a => tierOf(a) === 0 && a.kind !== 'secret');
 const secrets = A.filter(locked);
 // the rank: the six strongest achievements plus every opened secret
 const byLevel = (x, y) => points(y) - points(x) || catIdx(x.cat) - catIdx(y.cat);
-const counted = A.filter(a => a.kind === 'tier').sort(byLevel).slice(0, RANK_BEST);
-const totalPts = counted.reduce((s, a) => s + points(a), 0) + A.filter(a => a.kind === 'secret').reduce((s, a) => s + points(a), 0);
+const totalPts = A.reduce((s, a) => s + points(a), 0); // every achievement counts, opened secrets too
 const rankIdx = C_RANKS.reduce((k, r, i) => (totalPts >= r.from ? i : k), 0);
 const SHOW_SLOTS = 6;
 
@@ -901,7 +898,7 @@ function renderRank() {
   }).join('');
   $('#rank').innerHTML = `<div class="rank-top">${emblem(r)}
       <div><p class="rlab">Тренерское звание</p><p class="rname">${esc(r.name)}</p>
-        <div class="rbar pgc"><span class="track"><span style="width:${(totalPts / goal * 100).toFixed(1)}%"></span></span><span class="row"><span><b>${fmtInt(totalPts)}</b>${nx ? ` / ${fmtInt(nx.from)}` : ''}</span></span></div><p class="rnote">В звании ${RANK_BEST} лучших достижений и легендарные</p>
+        <div class="rbar pgc"><span class="track"><span style="width:${(totalPts / goal * 100).toFixed(1)}%"></span></span><span class="row"><span><b>${fmtInt(totalPts)}</b>${nx ? ` / ${fmtInt(nx.from)}` : ''}</span></span></div>
       </div>
     </div>
     <div class="road-wrap" id="road-wrap"><div class="road" role="list" aria-label="Тренерские звания"><span class="rail"></span><span class="rail-fill" style="width:calc((100% - 100% / ${R.length}) * ${fill.toFixed(4)})"></span>${steps}</div></div>`;
@@ -946,11 +943,11 @@ function renderShowcase() {
   if (VIEW === 'own') for (let i = state.show.length; i < SHOW_SLOTS; i++) cells.push(`<button class="slot" type="button" data-edit="1">Свободное место<small>Добавить достижение ученика</small></button>`);
   $('#showcase').innerHTML = cells.join('');
 }
-// opened secrets in their own «Легендарные» row; then the six that make the rank and the rest, each from the highest level down;
+// opened secrets in their own «Легендарные» row; then every achievement from the highest level down;
 // the closed secrets close it as one strip. Another person sees the strengths only: up to five, from Gold up
 function renderAll() {
   const legends = earned.filter(a => a.kind === 'secret');
-  const group = (title, chip, list) => !list.length ? '' : `<div class="cgrp"><div class="ph"><h3>${title}</h3><span class="chip">${chip}</span></div><div class="bibs c6">${list.map(a => bib(a)).join('')}</div></div>`;
+  const group = (title, chip, list) => !list.length ? '' : `<div class="cgrp"><div class="ph"><h3>${title}</h3><span class="chip">${chip}</span></div><div class="bibs c5">${list.map(a => bib(a)).join('')}</div></div>`;
   if (VIEW === 'friend') {
     $('#all-h').textContent = 'Сильные стороны';
     const best = [...legends, ...earned.filter(a => a.kind === 'tier' && tierOf(a) >= 3).sort(byLevel)].slice(0, 5);
@@ -963,9 +960,7 @@ function renderAll() {
     <div class="sbody"><p class="st"><b>${secrets.length} ${plural(secrets.length, ['секретное достижение', 'секретных достижения', 'секретных достижений'])}</b>Условия скрыты · каждое откроется легендарным, +${LEGEND.pts} очков</p>
     <div class="sbibs">${secrets.map(a => `<button class="sb" type="button" data-open="${a.id}" aria-label="Секретное достижение"><span class="mb" style="${look(SECRET)}" aria-hidden="true"><i></i><b>?</b></span></button>`).join('')}</div></div></div>`;
   const tiers = A.filter(a => a.kind === 'tier');
-  $('#all').innerHTML = (counted.some(a => points(a))
-    ? group('В звании', `${RANK_BEST} лучших`, counted) + group('Остальные', 'на звание не влияют', tiers.filter(a => !counted.includes(a)).sort(byLevel))
-    : `<div class="bibs c5">${tiers.sort(byLevel).map(a => bib(a)).join('')}</div>`) + strip;
+  $('#all').innerHTML = `<div class="bibs c5">${tiers.sort(byLevel).map(a => bib(a)).join('')}</div>` + strip;
 }
 
 /* ---------- dialogs ---------- */
@@ -989,7 +984,6 @@ function whoList(a) {
   if (VIEW !== 'own') return `<p class="dnote"><b>${a.count} ${plural(a.count, U.stu)}</b> за всё время</p>`;
   return `<h3 class="sdt">Выбежали из 3 часов · ${a.count}</h3><div class="ladder">${[...a.who].sort((x, y) => y.date.localeCompare(x.date)).map(w => `<div class="lr"><span class="sw" style="--tc:var(--t-leg)"></span><span class="tn">${esc(w.name)}</span><span class="th">${w.time}</span><span class="st ok">${fmtDate(w.date)}${w.left ? '<small>больше не занимается</small>' : ''}</span></div>`).join('')}</div>`;
 }
-const rankNote = a => a.kind !== 'tier' ? '' : `<p class="dnote">${counted.includes(a) ? `Входит в ${RANK_BEST} лучших и считается в звании.` : `Не входит в ${RANK_BEST} лучших: на звание сейчас не влияет.`}</p>`;
 // a coach achievement with its eight levels
 function openAchievement(id) {
   const a = byId[id], t = tierOf(a), lock = locked(a);
@@ -1007,7 +1001,7 @@ function openAchievement(id) {
       <h2 id="dlg-t">${esc(lock ? 'Секретное достижение' : a.name)}</h2>
       <p class="dcond">${esc(lock ? 'Условие откроется вместе с достижением.' : a.cond)}</p>
       ${lock ? `<p class="dnote">Когда откроете, оно станет <b>легендарным</b> и даст +${LEGEND.pts} очков. Открыто у ${fmtPct(a.r)} тренеров S10.</p>` : `<p class="dnote">Считается по данным: ${esc(a.src)}</p>`}
-      ${VIEW === 'own' ? dataNote(a) + rankNote(a) : ''}${ladder}${t && a.who ? whoList(a) : ''}${pg}${t && a.ev && !a.who ? `<p class="dev">Последний уровень: <b>${esc(a.ev)}</b></p>` : ''}
+      ${VIEW === 'own' ? dataNote(a) : ''}${ladder}${t && a.who ? whoList(a) : ''}${pg}${t && a.ev && !a.who ? `<p class="dev">Последний уровень: <b>${esc(a.ev)}</b></p>` : ''}
     </div></div>`);
 }
 // a student's achievements, as the coach sees them

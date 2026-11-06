@@ -3,15 +3,15 @@
     "id": 1,
     "name": "Тренер"
   },
-  "points": 3710,
+  "points": 4600,
   "rank": {
     "index": 5,
     "name": "Мастер",
-    "from": 2800
+    "from": 3000
   },
   "next": {
     "name": "Чемпион",
-    "from": 4000
+    "from": 5000
   },
   "items": [
     {
@@ -58,8 +58,7 @@
         "v": 132,
         "unit": "отчётов"
       },
-      "levels_proven": 8,
-      "counts_in_rank": true
+      "levels_proven": 8
     },
     {
       "id": "tenure",
@@ -106,8 +105,7 @@
         "x": 176,
         "unit": "месяцев занятий"
       },
-      "levels_proven": 8,
-      "counts_in_rank": true
+      "levels_proven": 8
     },
     {
       "id": "longest",
@@ -149,8 +147,7 @@
         "2025-11-15",
         "2026-05-15"
       ],
-      "last_level_text": "Атлет 1, с мая 2024",
-      "counts_in_rank": true
+      "last_level_text": "Атлет 1, с мая 2024"
     },
     {
       "id": "exp",
@@ -191,8 +188,7 @@
         "2025-05-01",
         "2025-11-01",
         "2026-05-01"
-      ],
-      "counts_in_rank": true
+      ]
     },
     {
       "id": "exec",
@@ -238,8 +234,7 @@
         "v": 84,
         "unit": "недель с планом"
       },
-      "levels_proven": 8,
-      "counts_in_rank": true
+      "levels_proven": 8
     },
     {
       "id": "finish",
@@ -284,8 +279,7 @@
         "x": 7,
         "unit": "мастер-планов"
       },
-      "levels_proven": 6,
-      "counts_in_rank": false
+      "levels_proven": 6
     },
     {
       "id": "pb",
@@ -331,8 +325,7 @@
         "x": 7,
         "unit": "учеников"
       },
-      "levels_proven": 8,
-      "counts_in_rank": true
+      "levels_proven": 8
     },
     {
       "id": "goal",
@@ -377,8 +370,7 @@
         "x": 10,
         "unit": "целевых стартов"
       },
-      "levels_proven": 7,
-      "counts_in_rank": false
+      "levels_proven": 7
     },
     {
       "id": "precise",
@@ -424,8 +416,7 @@
         "x": 8,
         "unit": "целевых стартов"
       },
-      "levels_proven": 7,
-      "counts_in_rank": false
+      "levels_proven": 7
     },
     {
       "id": "grade",
@@ -465,8 +456,7 @@
         "2025-10-12",
         "2026-10-12"
       ],
-      "last_level_text": "Атлет 1, марафон 2:58:41 в 44 года",
-      "counts_in_rank": false
+      "last_level_text": "Атлет 1, марафон 2:58:41 в 44 года"
     },
     {
       "id": "sub3",
