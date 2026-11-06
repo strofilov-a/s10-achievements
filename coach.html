@@ -744,7 +744,7 @@ function emblem(r) {
 const ATHLETE_PAGE = 'index.html'; // the athlete achievements prototype
 const COACH = { name: 'Тренер', initials: 'Т', students: 6 };
 // coach ranks: the same eight metals, their own thresholds and a navy frame (see PLATE)
-// a profile is the average level held across the nine tiered coach achievements (the thresholds were set for ten; retune them with the next additions):
+// a profile is the average level held across the ten tiered coach achievements:
 // a first season ~100, a year ~350, two years ~850, a strong coach ~1 850, the best ~3 350 and ~5 350, the very best ~8 350
 const C_RANKS = RANKS.map((r, i) => ({ ...r, from: [0, 100, 300, 800, 1600, 3000, 5000, 8000][i] }));
 const U = { mon: ['месяц', 'месяца', 'месяцев'], min: ['минута', 'минуты', 'минут'], pt: ['очко', 'очка', 'очков'], stu: ['ученик', 'ученика', 'учеников'], rep: ['отчёт', 'отчёта', 'отчётов'], race: ['целевой старт', 'целевых старта', 'целевых стартов'] };
@@ -764,6 +764,7 @@ const A = [
   { id: 'finish', cat: 'method', kind: 'tier', name: 'До конца', cond: 'Доля мастер-планов, которые ученики прошли целиком с выполнением от 80%', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 55, d: ['2024-12-15', '2025-03-30', '2025-07-20', '2026-04-26'], r: 70, src: 'Мастер-планы и исполнение' },
   { id: 'pb', cat: 'results', kind: 'tier', name: 'Прогресс команды', cond: 'Доля учеников, которые обновили личный рекорд за последние 12 месяцев', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 67, d: ['2024-10-13', '2025-03-09', '2025-04-27', '2025-09-28', '2026-03-08'], r: 75, src: 'Личные рекорды учеников' },
   { id: 'goal', cat: 'results', kind: 'tier', name: 'Цель команды', cond: 'Доля целевых стартов, где ученик пробежал на целевое время или быстрее', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 58, d: ['2025-03-16', '2025-04-27', '2025-10-12', '2026-04-26'], r: 60, src: 'Мастер-планы и протоколы стартов' },
+  { id: 'precise', cat: 'method', kind: 'tier', name: 'Точная цель', cond: 'Доля целевых стартов, где результат не дальше 2% от целевого времени, быстрее или медленнее', th: [10, 20, 30, 40, 50, 60, 70, 80], lab: pctLab([10, 20, 30, 40, 50, 60, 70, 80]), bu: '', fmt: 'pct', val: 46, d: ['2025-04-27', '2025-10-12', '2026-04-26', '2026-10-12'], ev: 'Атлет 1, марафон: цель 3:00:00, результат 2:58:41', r: 55, src: 'Мастер-планы и протоколы стартов' }, // the pair of «Цель команды»: an easy goal stops paying
   { id: 'grade', cat: 'results', kind: 'tier', name: 'Уровень учеников', cond: 'Лучший результат ученика с поправкой на возраст и пол, в процентах от мирового рекорда для его возраста', th: [50, 55, 60, 65, 70, 75, 80, 85], lab: pctLab([50, 55, 60, 65, 70, 75, 80, 85]), bu: '', fmt: 'pct', val: 71.4, d: ['2024-07-21', '2024-10-13', '2025-04-27', '2025-10-12', '2026-10-12'], ev: 'Атлет 1, марафон 2:58:41 в 44 года', r: 65, src: 'Протоколы стартов, возраст и пол учеников' },
   { id: 'sub3', cat: 'secret', kind: 'secret', name: 'Из трёх в команде', cond: 'Ученик пробежал марафон быстрее 3:00:00', th: [1], lab: ['2:59'], got: 'ученик быстрее 3:00', val: 1, d: ['2026-10-12'], ev: 'Атлет 1, 2:58:41, 12.10.2026', r: 6, src: 'Протоколы стартов' },
   { id: 'bq', cat: 'secret', kind: 'secret', name: 'Бостон', cond: 'Ученик пробежал марафон быстрее квалификационного норматива Бостона для своего возраста и пола', th: [1], lab: ['BQ'], got: 'квалификация ученика', val: 0, d: [], r: 4, src: 'Протоколы стартов, возраст и пол учеников' },
@@ -792,7 +793,7 @@ const DEMO = location.hash.slice(1);
 const VIEW = 'own'; // the shared card reads it; this page is always the coach's own
 addEventListener('hashchange', () => location.reload());
 // the least a share needs before it says something about the coach and not about one student (the spec, «Достижения тренера»)
-const MIN = { reply: [20, U.rep], tenure: [3, U.stu], exec: [3, U.stu], finish: [3, U.stu], pb: [3, U.stu], grade: [3, U.stu], goal: [3, U.race] };
+const MIN = { reply: [20, U.rep], tenure: [3, U.stu], exec: [3, U.stu], finish: [3, U.stu], pb: [3, U.stu], grade: [3, U.stu], goal: [3, U.race], precise: [3, U.race] };
 if (DEMO === 'empty' || DEMO === 'few') {
   const few = DEMO === 'few';
   S.splice(0, few ? 4 : S.length); // the two newest students, or none
@@ -839,7 +840,7 @@ function status(a) {
 }
 
 /* ---------- checks ---------- */
-console.assert(A.length === 13, 'coach catalog size', A.length);
+console.assert(A.length === 14, 'coach catalog size', A.length);
 A.forEach(a => console.assert(a.kind !== 'tier' || a.th.length === TIERS.length, 'eight levels', a.id));
 A.forEach(a => console.assert(a.th.every((t, i) => !i || (dir(a) === 1 ? t > a.th[i - 1] : t < a.th[i - 1])), 'levels climb', a.id));
 A.forEach(a => console.assert(a.d.length === tierOf(a), 'one date per reached level', a.id, a.d.length, tierOf(a)));
@@ -931,7 +932,7 @@ function openAchievement(id) {
   const ladder = lock ? '' : `<div class="ladder">${a.th.map((_, i) => {
     const lvi = levelAt(a, i);
     const where = `<small>у ${fmtPct(rarity(a, i))} тренеров</small>`;
-    const st = i < t ? `<span class="st ok">${fmtDate(a.d[i])}${where}</span>` : i === t ? `<span class="st nx">${esc(remaining(a))}${where}</span>` : `<span class="st">—${where}</span>`;
+    const st = i < t ? `<span class="st ok">${fmtDate(a.d[i])}${where}</span>` : i === t && !a.short ? `<span class="st nx">${esc(remaining(a))}${where}</span>` : `<span class="st">—${where}</span>`;
     const label = a.kind === 'tier' ? thLabel(a, i) : a.got;
     return `<div class="lr"><span class="sw" style="--tc:${lvi.c}"></span><span class="tn">${levelName(a, i)}</span><span class="th">${esc(label)} · +${lvi.pts}</span>${st}</div>`;
   }).join('')}</div>`;
