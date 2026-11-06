@@ -3,7 +3,7 @@
   "category": "speed",
   "kind": "tier",
   "name": "Пятёрка",
-  "condition": "Личный рекорд на 5 км",
+  "condition": "Ваш лучший результат на 5 км",
   "level": 6,
   "level_name": "Мастер",
   "value": 1138,

@@ -602,10 +602,11 @@ const fmtDate = iso => iso.split('-').reverse().join('.');
 const fmtPct = p => (p < 1 ? p.toLocaleString('ru-RU', { maximumFractionDigits: p < 0.1 ? 2 : 1 }) : Math.round(p)) + '%';
 const look = lv => `--bc:${lv.c};--bci:${lv.ci}`;
 const dir = a => a.dir || 1;
-function tierOf(a) { return a.th.filter(t => (dir(a) === 1 ? a.val >= t : a.val <= t)).length; }
+function tierOf(a) { const t = a.th.filter(x => (dir(a) === 1 ? a.val >= x : a.val <= x)).length; return a.cap === undefined ? t : Math.min(t, a.cap); } // cap: the levels the data can prove so far
 const maxed = a => tierOf(a) === a.th.length;
 const locked = a => a.kind === 'secret' && tierOf(a) === 0;
 function progress(a) {
+  if (a.capProg !== undefined) return Math.min(1, a.capProg); // a level waiting for data: how much of it is in
   const t = tierOf(a); if (t === a.th.length) return 1;
   const next = a.th[t], prev = t ? a.th[t - 1] : (dir(a) === 1 ? 0 : a.start);
   const p = dir(a) === 1 ? (a.val - prev) / (next - prev) : (prev - a.val) / (prev - next);
@@ -764,23 +765,23 @@ const CATS = [
 ];
 const pctLab = th => th.map(t => `от ${t}%`);
 // nothing here counts students: shares, averages and single best results only;
-// a share with little behind it leans on the S10 average (sm, see below), and a student's result counts after 8 weeks with the coach
+// every figure is for all the time on S10; a level needs enough data behind it (GATE below); a student's result counts after 8 weeks with the coach
 const A = [
-  { id: 'reply', cat: 'care', kind: 'tier', name: 'На связи', cond: 'Медианное время ответа на отчёт ученика за последние 12 месяцев', th: [720, 480, 360, 240, 180, 120, 60, 30], dir: -1, start: 1440, fmt: 'dur', lab: ['до 12 ч', 'до 8 ч', 'до 6 ч', 'до 4 ч', 'до 3 ч', 'до 2 ч', 'до 1 ч', 'до 30 мин'], bu: '', val: 150, d: ['2024-06-02', '2024-07-14', '2024-09-01', '2025-01-19', '2025-08-24'], sm: { of: 'rep', v: 132, n: 240, p: 360 }, r: 92, src: 'Отчёты учеников и ответы тренера' },
-  { id: 'tenure', cat: 'keep', kind: 'tier', name: 'Удержание', cond: 'Доля учеников, которые занимались хотя бы 3 месяца. Считаются только те, кто пришёл больше 3 месяцев назад: новичок не портит цифру, пока у него не было шанса', th: [30, 40, 50, 60, 70, 80, 85, 90], lab: pctLab([30, 40, 50, 60, 70, 80, 85, 90]), bu: '', fmt: 'pct', val: 80, sm: { of: 'stu', x: 9, n: 10, p: 60 }, d: ['2024-06-30', '2024-07-30', '2024-08-30', '2024-10-30', '2024-12-01', '2025-06-15'], r: 88, src: 'Выбор тренера и оплаты' },
-  { id: 'longest', cat: 'keep', kind: 'tier', name: 'Вместе долго', cond: 'Самый долгий ученик у этого тренера', th: [2, 3, 6, 9, 12, 18, 24, 36], u: 'mon', val: 22, d: ['2024-07-15', '2024-08-15', '2024-11-15', '2025-02-15', '2025-05-15', '2025-11-15'], ev: 'Атлет 1, с мая 2024', r: 85, src: 'Выбор тренера и оплаты' },
-  { id: 'exp', cat: 'keep', kind: 'tier', name: 'Стаж', cond: 'Месяцы тренерства на S10', th: [1, 2, 3, 6, 12, 18, 24, 36], u: 'mon', val: 30, d: ['2024-06-01', '2024-07-01', '2024-08-01', '2024-11-01', '2025-05-01', '2025-11-01', '2026-05-01'], r: 95, src: 'Профиль тренера' },
-  { id: 'exec', cat: 'method', kind: 'tier', name: 'Исполнение', cond: 'Среднее выполнение планов учеников за последние 12 месяцев', th: [60, 65, 70, 75, 80, 85, 90, 95], lab: pctLab([60, 65, 70, 75, 80, 85, 90, 95]), bu: '', fmt: 'pct', val: 84, d: ['2024-08-31', '2024-10-31', '2025-01-31', '2025-05-31', '2026-02-28'], sm: { of: 'stu', v: 86, n: 6, p: 75 }, r: 80, src: 'План и исполнение' },
-  { id: 'finish', cat: 'method', kind: 'tier', name: 'До конца', cond: 'Доля мастер-планов, которые ученики прошли целиком с выполнением от 80%', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 55, d: ['2024-12-15', '2025-03-30', '2025-07-20', '2026-04-26'], sm: { of: 'plan', x: 7, n: 11, p: 45 }, r: 70, src: 'Мастер-планы и исполнение' },
-  { id: 'pb', cat: 'results', kind: 'tier', name: 'Прогресс команды', cond: 'Доля учеников, которые обновили личный рекорд за последние 12 месяцев. Сильный ученик, от 80% по возрастной таблице, засчитывается и без рекорда, если пробежал в пределах 1% от него', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 67, d: ['2024-10-13', '2025-03-09', '2025-04-27', '2025-09-28', '2026-03-08'], sm: { of: 'stu', x: 5, n: 6, p: 50 }, r: 75, src: 'Личные рекорды учеников' },
-  { id: 'goal', cat: 'results', kind: 'tier', name: 'Цель команды', cond: 'Доля целевых стартов, где ученик пробежал на целевое время или быстрее', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 58, d: ['2025-03-16', '2025-04-27', '2025-10-12', '2026-04-26'], sm: { of: 'race', x: 7, n: 12, p: 45 }, r: 60, src: 'Мастер-планы и протоколы стартов' },
-  { id: 'precise', cat: 'method', kind: 'tier', name: 'Точная цель', cond: 'Доля целевых стартов, где результат не дальше 2% от целевого времени, быстрее или медленнее', th: [10, 20, 30, 40, 50, 60, 70, 80], lab: pctLab([10, 20, 30, 40, 50, 60, 70, 80]), bu: '', fmt: 'pct', val: 46, d: ['2025-04-27', '2025-10-12', '2026-04-26', '2026-10-12'], ev: 'Атлет 1, марафон: цель 3:00:00, результат 2:58:41', sm: { of: 'race', x: 6, n: 12, p: 30 }, r: 55, src: 'Мастер-планы и протоколы стартов' }, // the pair of «Цель команды»: an easy goal stops paying
-  { id: 'grade', cat: 'results', kind: 'tier', name: 'Уровень учеников', cond: 'Лучший результат ученика с поправкой на возраст и пол, в процентах от мирового рекорда для его возраста', th: [50, 55, 60, 65, 70, 75, 80, 85], lab: pctLab([50, 55, 60, 65, 70, 75, 80, 85]), bu: '', fmt: 'pct', val: 71.4, d: ['2024-07-21', '2024-10-13', '2025-04-27', '2025-10-12', '2026-10-12'], ev: 'Атлет 1, марафон 2:58:41 в 44 года', r: 65, src: 'Протоколы стартов, возраст и пол учеников' },
+  { id: 'reply', cat: 'care', kind: 'tier', name: 'На связи', cond: 'Как быстро тренер отвечает на отчёты учеников. Берём обычное время ответа: половина ответов приходит быстрее него', th: [720, 480, 360, 240, 180, 120, 60, 30], dir: -1, start: 1440, fmt: 'dur', lab: ['до 12 ч', 'до 8 ч', 'до 6 ч', 'до 4 ч', 'до 3 ч', 'до 2 ч', 'до 1 ч', 'до 30 мин'], bu: '', obs: { of: 'rep', n: 1400, v: 132 }, d: ['2024-06-02', '2024-07-14', '2024-09-01', '2025-01-19', '2025-08-24'], r: 92, src: 'Отчёты учеников и ответы тренера' },
+  { id: 'tenure', cat: 'keep', kind: 'tier', name: 'Удержание', cond: 'Сколько месяцев в среднем ученик занимается у тренера. Считаем по продлениям: если каждый месяц уходит 1 ученик из 10, ученик в среднем остаётся 10 месяцев', th: [3, 4, 5, 6, 8, 10, 14, 20], fmt: 'mo', lab: ['3 мес.', '4 мес.', '5 мес.', '6 мес.', '8 мес.', '10 мес.', '14 мес.', '20 мес.'], bu: 'в среднем', obs: { of: 'mon', n: 192, x: 176 }, d: ['2024-06-30', '2024-07-30', '2024-08-30', '2024-10-30', '2024-12-01', '2025-06-15'], r: 88, src: 'Выбор тренера и оплаты' },
+  { id: 'longest', cat: 'keep', kind: 'tier', name: 'Вместе долго', cond: 'Рекорд тренера: сколько месяцев подряд у него занимается или занимался один ученик', th: [2, 3, 6, 9, 12, 18, 24, 36], u: 'mon', val: 30, d: ['2024-07-15', '2024-08-15', '2024-11-15', '2025-02-15', '2025-05-15', '2025-11-15', '2026-05-15'], ev: 'Атлет 1, с мая 2024', r: 85, src: 'Выбор тренера и оплаты' },
+  { id: 'exp', cat: 'keep', kind: 'tier', name: 'Стаж', cond: 'Сколько месяцев у тренера были ученики на S10', th: [1, 2, 3, 6, 12, 18, 24, 36], u: 'mon', val: 30, d: ['2024-06-01', '2024-07-01', '2024-08-01', '2024-11-01', '2025-05-01', '2025-11-01', '2026-05-01'], r: 95, src: 'Выбор тренера и оплаты' },
+  { id: 'exec', cat: 'method', kind: 'tier', name: 'Исполнение', cond: 'Какую часть тренировок из плана ученики выполняют: среднее по всем неделям всех учеников', th: [60, 65, 70, 75, 80, 85, 90, 95], lab: pctLab([60, 65, 70, 75, 80, 85, 90, 95]), bu: '', fmt: 'pct', obs: { of: 'wk', n: 410, v: 84 }, d: ['2024-08-31', '2024-10-31', '2025-01-31', '2025-05-31', '2026-02-28'], r: 80, src: 'План и исполнение' },
+  { id: 'finish', cat: 'method', kind: 'tier', name: 'До конца', cond: 'Какая доля мастер-планов доходит до старта: ученик прошёл весь план и каждую неделю выполнил хотя бы на 80%', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', obs: { of: 'plan', n: 12, x: 7 }, d: ['2024-12-15', '2025-03-30', '2025-07-20', '2026-04-26'], r: 70, src: 'Мастер-планы и исполнение' },
+  { id: 'pb', cat: 'results', kind: 'tier', name: 'Прогресс команды', cond: 'Какая доля учеников обновила личный рекорд за время занятий. Сильный бегун, от 80% по возрастной таблице, засчитывается и за результат в пределах 1% от рекорда: держать такую форму — тоже успех', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', obs: { of: 'stu', n: 11, x: 7 }, d: ['2024-10-13', '2025-03-09', '2025-04-27', '2025-09-28', '2026-03-08'], r: 75, src: 'Личные рекорды учеников' },
+  { id: 'goal', cat: 'results', kind: 'tier', name: 'Цель команды', cond: 'Какая доля целевых стартов пробежана на целевое время или быстрее', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', obs: { of: 'race', n: 18, x: 10 }, d: ['2025-03-16', '2025-04-27', '2025-10-12', '2026-04-26'], r: 60, src: 'Мастер-планы и протоколы стартов' },
+  { id: 'precise', cat: 'method', kind: 'tier', name: 'Точная цель', cond: 'Насколько точно тренер ставит цели: доля целевых стартов, где результат не дальше 2% от цели — не сильно быстрее и не сильно медленнее', th: [10, 20, 30, 40, 50, 60, 70, 80], lab: pctLab([10, 20, 30, 40, 50, 60, 70, 80]), bu: '', fmt: 'pct', obs: { of: 'race', n: 18, x: 8 }, d: ['2025-04-27', '2025-10-12', '2026-04-26', '2026-10-12'], ev: 'Атлет 1, марафон: цель 3:00:00, результат 2:58:41', r: 55, src: 'Мастер-планы и протоколы стартов' }, // the pair of «Цель команды»: an easy goal stops paying
+  { id: 'grade', cat: 'results', kind: 'tier', name: 'Уровень учеников', cond: 'Лучший результат ученика с учётом возраста и пола, в процентах от мирового рекорда для его возраста. 60% — сильный любитель, 70% — региональный уровень, 80% — национальный, 90% — мировой', th: [50, 55, 60, 65, 70, 75, 80, 85], lab: pctLab([50, 55, 60, 65, 70, 75, 80, 85]), bu: '', fmt: 'pct', val: 71.4, d: ['2024-07-21', '2024-10-13', '2025-04-27', '2025-10-12', '2026-10-12'], ev: 'Атлет 1, марафон 2:58:41 в 44 года', r: 65, src: 'Протоколы стартов, возраст и пол учеников' },
   // who: every student who did it while with this coach, for good; the counter on the card is their number, the points stay +500 once
   { id: 'sub3', cat: 'secret', kind: 'secret', name: 'Саб 3', cond: 'Ученик пробежал марафон быстрее 3:00:00. Значок на плашке — сколько учеников сделали это у вас за всё время. Если ученик уйдёт, значок останется', th: [1], lab: ['2:59'], got: 'марафон быстрее 3:00', val: 1, d: ['2024-10-13'], ev: 'Атлет 1, 2:58:41, 12.10.2026', r: 6, src: 'Протоколы стартов',
     who: [{ name: 'Атлет 8', time: '2:59:12', date: '2024-10-13', left: true }, { name: 'Атлет 7', time: '2:56:30', date: '2025-04-27', left: true }, { name: 'Атлет 1', time: '2:58:41', date: '2026-10-12' }] },
-  { id: 'bq', cat: 'secret', kind: 'secret', name: 'Бостон', cond: 'Ученик пробежал марафон быстрее квалификационного норматива Бостона для своего возраста и пола', th: [1], lab: ['BQ'], got: 'квалификация ученика', val: 0, d: [], r: 4, src: 'Протоколы стартов, возраст и пол учеников' },
-  { id: 'podium', cat: 'secret', kind: 'secret', name: 'Подиум', cond: 'Ученик попал в тройку челленджа S10', th: [1], lab: ['1–3'], got: 'ученик в тройке', val: 0, d: [], r: 9, src: 'Челленджи и протоколы' },
+  { id: 'bq', cat: 'secret', kind: 'secret', name: 'Бостон', cond: 'Ученик пробежал марафон быстрее норматива Бостонского марафона для своего возраста и пола', th: [1], lab: ['BQ'], got: 'квалификация ученика', val: 0, d: [], r: 4, src: 'Протоколы стартов, возраст и пол учеников' },
+  { id: 'podium', cat: 'secret', kind: 'secret', name: 'Подиум', cond: 'Ученик попал в тройку в челлендже S10', th: [1], lab: ['1–3'], got: 'ученик в тройке', val: 0, d: [], r: 9, src: 'Челленджи и протоколы' },
   { id: 'tour', cat: 'secret', kind: 'secret', name: 'Король турнира', cond: 'Ученик выиграл сезон турнира S10', th: [1], lab: ['№ 1'], got: 'ученик № 1 сезона', val: 0, d: [], r: 1, src: 'Турнир S10' },
 ];
 // students and the achievements from their own profiles earned while with this coach (example data)
@@ -808,28 +809,33 @@ if (DEMO === 'empty' || DEMO === 'few') {
   const few = DEMO === 'few';
   S.splice(0, few ? 4 : S.length); // the two newest students, or none
   // what a new coach's data says so far: tiny samples, so the S10 average carries most of each share
-  const data = few ? { reply: { v: 420, n: 14 }, tenure: { x: 2, n: 2 }, exec: { v: 70, n: 2 }, finish: { x: 0, n: 0 }, pb: { x: 0, n: 2 }, goal: { x: 0, n: 1 }, precise: { x: 1, n: 1 } } : {};
+  const data = few ? { reply: { n: 60, v: 420 }, tenure: { n: 10, x: 10 }, exec: { n: 40, v: 70 }, finish: { n: 0 }, pb: { n: 1, x: 0 }, goal: { n: 1, x: 0 }, precise: { n: 1, x: 1 } } : {};
   A.forEach(a => {
     delete a.ev;
     a.val = dir(a) === -1 ? a.start : 0;
-    if (a.sm) a.sm = { of: a.sm.of, p: a.sm.p, n: 0, ...data[a.id] };
+    if (a.obs) a.obs = { of: a.obs.of, n: 0, ...data[a.id] };
   });
   const set = (id, o) => Object.assign(A.find(a => a.id === id), o);
   if (few) { set('longest', { val: 6, ev: 'Атлет 5, с мая 2026' }); set('exp', { val: 6 }); set('grade', { val: 58 }); }
   else { set('longest', { none: 'Пока нет учеников' }); set('exp', { none: 'Меньше месяца на S10' }); set('grade', { none: 'Пока нет результата' }); }
 }
-// a small sample leans on the S10 average instead of waiting for a hard minimum: (n × own value + K × average) / (n + K),
-// K = 5 students, plans or races, 20 reports. A coach of two world-class runners gets a fair figure, one lucky student
-// does not make 100%, and with nothing at all there is no figure yet
-const K = { stu: 5, plan: 5, race: 5, rep: 20 };
-const SAMPLE = { stu: U.stu, plan: U.plan, race: U.race, rep: U.rep };
+// every figure is for all the time on S10 and is shown as it is. A level also needs data enough to prove it, the more the higher:
+// Бронза to Золото one base, Платина ×2, Титан ×4, Мастер ×6, Чемпион ×8, Элита ×10. A coach with 3 students proves the same
+// level later than one with 20, yet can reach every level; one lucky student cannot make an Элита
+const GATE = { rep: 20, mon: 6, wk: 12, plan: 2, race: 2, stu: 1 };
+const STEP = [1, 1, 1, 2, 4, 6, 8, 10];
+const OBS = { rep: U.rep, mon: ['месяц занятий', 'месяца занятий', 'месяцев занятий'], wk: ['неделя с планом', 'недели с планом', 'недель с планом'], plan: U.plan, race: U.race, stu: U.stu };
+const gateOf = (a, i) => GATE[a.obs.of] * STEP[i];
+const rateTier = a => a.th.filter(x => (dir(a) === 1 ? a.val >= x : a.val <= x)).length;
+const held = a => !!a.obs && !a.none && rateTier(a) > tierOf(a); // the figure is there, the data not yet
 A.forEach(a => {
-  if (!a.sm) return;
-  const s = a.sm;
-  s.raw = s.x !== undefined ? (s.n ? s.x / s.n * 100 : 0) : s.v;
-  if (!s.n) { a.none = 'Пока нет данных'; a.val = dir(a) === -1 ? a.start : 0; return; }
-  const m = (s.n * s.raw + K[s.of] * s.p) / (s.n + K[s.of]);
-  a.val = a.fmt === 'dur' ? Math.round(m) : Math.round(m * 10) / 10;
+  const o = a.obs;
+  if (!o) return;
+  if (!o.n) { a.none = 'Пока нет данных'; a.val = dir(a) === -1 ? a.start : 0; a.cap = 0; return; }
+  // «Удержание»: of n months students had, x were renewed; one leaving in k months means a student stays k months on average
+  a.val = o.v !== undefined ? o.v : o.of === 'mon' ? (o.n > o.x ? Math.round(o.n / (o.n - o.x) * 10) / 10 : Infinity) : Math.round(o.x / o.n * 1000) / 10;
+  a.cap = STEP.filter(st => o.n >= GATE[o.of] * st).length;
+  if (a.cap < a.th.length && rateTier(a) > a.cap) a.capProg = o.n / (GATE[o.of] * STEP[a.cap]); // the bar fills with the data still needed
 });
 // in the states the levels are dated month by month back from November 2026
 if (DEMO === 'empty' || DEMO === 'few') A.forEach(a => { const t = tierOf(a); a.d = Array.from({ length: t }, (_, i) => new Date(Date.UTC(2026, 10 - (t - 1 - i), 1)).toISOString().slice(0, 10)); });
@@ -842,12 +848,14 @@ const byId = Object.fromEntries(A.map(a => [a.id, a]));
 const catOf = id => CATS.find(c => c.id === id);
 const catIdx = id => CATS.findIndex(c => c.id === id);
 const fmtDur = m => (m >= 60 ? `${Math.floor(m / 60)} ч${m % 60 ? ` ${m % 60} мин` : ''}` : `${m} мин`);
-function fmtN(a, n) { if (a.fmt === 'dur') return fmtDur(n); if (a.fmt === 'pct') return n.toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + '%'; if (a.fmt === 'dec') return n.toLocaleString('ru-RU', { maximumFractionDigits: 1 }); return n.toLocaleString('ru-RU'); }
+function fmtN(a, n) { if (a.fmt === 'mo') return n === Infinity ? 'никто не ушёл' : `${n.toLocaleString('ru-RU', { maximumFractionDigits: 1 })} мес.`; if (a.fmt === 'dur') return fmtDur(n); if (a.fmt === 'pct') return n.toLocaleString('ru-RU', { maximumFractionDigits: 1 }) + '%'; if (a.fmt === 'dec') return n.toLocaleString('ru-RU', { maximumFractionDigits: 1 }); return n.toLocaleString('ru-RU'); }
 function remaining(a) {
   const t = tierOf(a); if (t === a.th.length) return '';
+  if (held(a)) { const left = gateOf(a, t) - a.obs.n; return `нужно ещё ${left} ${plural(left, OBS[a.obs.of])}`; }
   const next = a.th[t];
   if (a.fmt === 'dur') return `быстрее на ${fmtDur(a.val - next)}`;
   const left = Math.round((next - a.val) * 10) / 10;
+  if (a.fmt === 'mo') return `ещё ${left.toLocaleString('ru-RU')} мес.`;
   return a.fmt === 'pct' ? `ещё ${left.toLocaleString('ru-RU')}%` : `ещё ${fmtN(a, left)} ${plural(left, U[a.u])}`;
 }
 function status(a) {
@@ -855,9 +863,10 @@ function status(a) {
   if (locked(a)) return 'Условие скрыто';
   if (VIEW === 'friend') return t ? `Получено ${fmtDate(a.d[t - 1])}` : '';
   if (a.none) return a.none;
+  if (held(a)) return `Нужно больше данных: ${a.obs.n} из ${gateOf(a, t)} ${OBS[a.obs.of][2]}`;
   if (t === a.th.length) return a.kind === 'tier' ? 'Максимальный уровень' : `Получено ${fmtDate(a.d[t - 1])}`;
   const next = a.th[t];
-  if (a.fmt === 'dur' || a.fmt === 'pct') return `Сейчас ${fmtN(a, a.val)} · цель ${a.lab[t]}`;
+  if (a.fmt === 'dur' || a.fmt === 'pct' || a.fmt === 'mo') return `Сейчас ${fmtN(a, a.val)} · цель ${a.lab[t]}`;
   return `${fmtN(a, a.val)} из ${fmtN(a, next)} ${gen(a.u)}`;
 }
 
@@ -964,12 +973,16 @@ const dlg = $('#dlg');
 const closeBtn = `<button class="x" type="button" id="d-close" aria-label="Закрыть"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round" aria-hidden="true">${ICON.close}</svg></button>`;
 function show(html) { $('#dlg-body').innerHTML = html; if (!dlg.open) dlg.showModal(); }
 // how the figure came about: the coach's own data, the S10 average and the value with both
-function sampleNote(a) {
-  const s = a.sm;
-  if (!s) return '';
-  if (!s.n) return '<p class="dnote"><b>Пока нет данных.</b> Значение появится с первым результатом.</p>';
-  const own = s.x !== undefined ? `${s.x} из ${s.n} ${SAMPLE[s.of][2]} (${fmtN(a, Math.round(s.raw * 10) / 10)})` : `${fmtN(a, s.v)}, ${SAMPLE[s.of][2]}: ${s.n}`;
-  return `<p class="dnote">Ваши данные: ${own}. В среднем на S10: ${fmtN(a, s.p)}. С поправкой на объём данных: <b>${fmtN(a, a.val)}</b>.</p>`;
+function dataNote(a) {
+  const o = a.obs;
+  if (!o) return '';
+  if (!o.n) return '<p class="dnote"><b>Пока нет данных.</b> Значение появится с первым результатом.</p>';
+  const unit = OBS[o.of][2], Unit = unit[0].toUpperCase() + unit.slice(1);
+  const fact = o.of === 'mon' ? `${Unit} за всё время: ${fmtInt(o.n)}, из них с продлением: ${fmtInt(o.x)}. ${o.n > o.x ? `Ученик в среднем остаётся ${fmtN(a, a.val)}` : 'Пока никто не ушёл'}`
+    : o.v !== undefined ? `${Unit} за всё время: ${fmtInt(o.n)}, ${o.of === 'rep' ? 'обычное время ответа' : 'в среднем'} — ${fmtN(a, o.v)}` : `${Unit} за всё время: ${o.x} из ${o.n}, это ${fmtN(a, a.val)}`;
+  const t = tierOf(a), g = held(a) ? gateOf(a, t) : 0;
+  const hold = held(a) ? ` <b>По цифре это уже «${levelName(a, rateTier(a) - 1)}».</b> Чтобы подтвердить, нужно больше данных: уровень «${levelName(a, t)}» откроется, когда будет ${g} ${plural(g, OBS[o.of])}, сейчас ${o.n}.` : '';
+  return `<p class="dnote">${fact.replace(/\.$/, '')}.${hold}</p>`;
 }
 // everyone behind a counter, newest first; a student who left stays on the list
 function whoList(a) {
@@ -983,7 +996,8 @@ function openAchievement(id) {
   const ladder = lock ? '' : `<div class="ladder">${a.th.map((_, i) => {
     const lvi = levelAt(a, i);
     const where = `<small>у ${fmtPct(rarity(a, i))} тренеров</small>`;
-    const st = i < t ? `<span class="st ok">${fmtDate(a.d[i])}${where}</span>` : i === t && !a.none && VIEW === 'own' ? `<span class="st nx">${esc(remaining(a))}${where}</span>` : `<span class="st">—${where}</span>`;
+    const need = VIEW === 'own' && a.obs && a.obs.n < gateOf(a, i) ? `<small>нужно ${gateOf(a, i)} ${plural(gateOf(a, i), OBS[a.obs.of])}</small>` : where;
+    const st = i < t ? `<span class="st ok">${fmtDate(a.d[i])}${where}</span>` : i === t && !a.none && VIEW === 'own' ? `<span class="st nx">${esc(remaining(a))}${need}</span>` : `<span class="st">—${need}</span>`;
     const label = a.kind === 'tier' ? thLabel(a, i) : a.got;
     return `<div class="lr"><span class="sw" style="--tc:${lvi.c}"></span><span class="tn">${levelName(a, i)}</span><span class="th">${esc(label)} · +${lvi.pts}</span>${st}</div>`;
   }).join('')}</div>`;
@@ -993,7 +1007,7 @@ function openAchievement(id) {
       <h2 id="dlg-t">${esc(lock ? 'Секретное достижение' : a.name)}</h2>
       <p class="dcond">${esc(lock ? 'Условие откроется вместе с достижением.' : a.cond)}</p>
       ${lock ? `<p class="dnote">Когда откроете, оно станет <b>легендарным</b> и даст +${LEGEND.pts} очков. Открыто у ${fmtPct(a.r)} тренеров S10.</p>` : `<p class="dnote">Считается по данным: ${esc(a.src)}</p>`}
-      ${VIEW === 'own' ? sampleNote(a) + rankNote(a) : ''}${ladder}${t && a.who ? whoList(a) : ''}${pg}${t && a.ev && !a.who ? `<p class="dev">Последний уровень: <b>${esc(a.ev)}</b></p>` : ''}
+      ${VIEW === 'own' ? dataNote(a) + rankNote(a) : ''}${ladder}${t && a.who ? whoList(a) : ''}${pg}${t && a.ev && !a.who ? `<p class="dev">Последний уровень: <b>${esc(a.ev)}</b></p>` : ''}
     </div></div>`);
 }
 // a student's achievements, as the coach sees them
