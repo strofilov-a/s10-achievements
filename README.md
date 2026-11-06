@@ -1,21 +1,33 @@
-# S10.run: достижения (прототип)
+# S10.run: достижения и звания
 
-Концепт страниц достижений для S10.run на примерных данных.
+Достижения и звания атлета и тренера для S10.run: готовый фронтенд и готовый бэкенд, которые программисты S10 ставят на сайт почти без своего кода.
 
-Открыть: https://strofilov-a.github.io/s10-achievements/
+Демо: https://strofilov-a.github.io/s10-achievements/ — тот же код, что пойдёт на сайт, на примерных данных. Переключатель внизу слева меняет страницу и состояние.
 
-| Файл | Что это |
+## Что где
+
+| Путь | Что это |
 | --- | --- |
-| `index.html` | Достижения атлета |
-| `coach.html` | Достижения тренера, ученики и витрина учеников |
-| `assets/ranks/*.svg` | Значки званий атлета: bronze, silver, gold, platinum, titan, master, champion, elite |
-| `assets/coach-ranks/*.svg` | Значки званий тренера, те же имена |
-| `assets/tokens.css`, `assets/tokens.json` | Цвета уровней и интерфейса |
-| `api-mock/*.json` | Примеры ответов API на данных прототипа |
+| `catalog/` | Каталог: 56 достижений атлета, 14 тренера, уровни, звания, правило подтверждения данными. Один источник для сервера и демо. `enabled: false` — достижение не показывается, пока для него нет данных |
+| `contract/API.md`, `contract/mock/` | Договор фронтенда и бэкенда: что отвечает `/apiweb/achievements.php` в каждом состоянии. Примеры — это и данные демо, и эталон для тестов бэкенда |
+| `frontend/src/` | Фронтенд: `shell.js` (шапка сайта, API, Shadow DOM, демо), `core.js` (уровни, значки, карточки), `athlete.js`, `coach.js`, `style.css`, `achievements.html` |
+| `frontend/build.mjs` | Сборка: `release/frontend` для сайта без демо, `dist/achievements.js` и `index.html` / `coach.html` для демо |
+| `backend/` | PHP-бэкенд: таблицы, расчёт по истории, API, cron-задачи, локальный сервер на тестовых пользователях. Подробно — `backend/README.md` |
+| `release/frontend`, `release/backend` | Что уходит программистам S10, с инструкцией сверху |
+| `tests/` | `frontend.mjs` — демо в Chrome; `live.mjs` — сборка для сайта против настоящего бэкенда |
+| `tools/` | `release-backend.sh`, `zip.sh`; `export-prototype.mjs` — разовый перенос каталога из прототипов |
+| `assets/` | SVG значков званий и цвета уровней, для презентаций и макетов |
 
-Состояния открываются переключателем в левом нижнем углу или по хешу адреса:
+## Команды
 
-- атлет: `#new`, `#levelup`, `#rankup`, `#friend`, `#hidden`, `#profile`, `#loading`, `#error`;
-- тренер: `#few`, `#empty`, `#levelup`, `#rankup`, `#public`, `#hidden`, `#profile`, `#loading`, `#error`.
+```bash
+node frontend/build.mjs                      # собрать фронтенд и демо
+node tests/frontend.mjs                      # демо: все состояния и все действия пользователя
+php backend/tests/run.php                    # бэкенд: расчёт, API, договор с фронтендом
+php -S 127.0.0.1:8090 backend/dev/router.php # бэкенд на тестовых пользователях, затем:
+node tests/live.mjs                          # сборка для сайта против этого бэкенда
+sh tools/release-backend.sh                  # собрать release/backend и прогнать в нём тесты
+sh tools/zip.sh ~/Desktop                    # два архива для программистов
+```
 
-Переключатель есть только в прототипе, на сайте его не будет. Правила, расчёт и API описаны в ТЗ.
+Тексты для людей — по-русски, комментарии в коде — по-английски.

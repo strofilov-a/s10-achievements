@@ -1,0 +1,12 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>live profile</title><style>html,body{margin:0;background:#fff;font-family:system-ui}main{max-width:1100px;margin:40px auto;padding:0 16px}</style></head>
+<body><main>
+<!-- the two profile blocks the way the site's profile will hold them; the second one appears later, as React would draw it -->
+<h1>Профиль атлета 3</h1>
+<div data-s10-achievements="widget" data-id="3"></div>
+<h1>Профиль тренера 12</h1>
+<div id="later"></div>
+</main>
+<script src="/release/frontend/t5/achievements/achievements.js"></script>
+<script>setTimeout(() => { document.getElementById('later').innerHTML = '<div data-s10-achievements="coach-widget" data-id="12"></div>'; }, 600);</script>
+</body></html>

@@ -1,0 +1,1619 @@
+{
+  "now": "2026-11-06",
+  "viewer": "self",
+  "coach": {
+    "id": 12,
+    "name": "Тренер",
+    "initials": "Т",
+    "students": 6
+  },
+  "levels": {
+    "tiers": [
+      {
+        "name": "Бронза",
+        "points": 10
+      },
+      {
+        "name": "Серебро",
+        "points": 25
+      },
+      {
+        "name": "Золото",
+        "points": 50
+      },
+      {
+        "name": "Платина",
+        "points": 100
+      },
+      {
+        "name": "Титан",
+        "points": 150
+      },
+      {
+        "name": "Мастер",
+        "points": 200
+      },
+      {
+        "name": "Чемпион",
+        "points": 300
+      },
+      {
+        "name": "Элита",
+        "points": 400
+      }
+    ],
+    "one": {
+      "name": "Получено",
+      "points": 25
+    },
+    "legend": {
+      "name": "Легендарное",
+      "points": 500
+    }
+  },
+  "ranks": [
+    {
+      "name": "Бронза",
+      "from": 0
+    },
+    {
+      "name": "Серебро",
+      "from": 100
+    },
+    {
+      "name": "Золото",
+      "from": 300
+    },
+    {
+      "name": "Платина",
+      "from": 800
+    },
+    {
+      "name": "Титан",
+      "from": 1600
+    },
+    {
+      "name": "Мастер",
+      "from": 3000
+    },
+    {
+      "name": "Чемпион",
+      "from": 5000
+    },
+    {
+      "name": "Элита",
+      "from": 8000
+    }
+  ],
+  "athlete_ranks": [
+    {
+      "name": "Бронза",
+      "from": 0
+    },
+    {
+      "name": "Серебро",
+      "from": 300
+    },
+    {
+      "name": "Золото",
+      "from": 1500
+    },
+    {
+      "name": "Платина",
+      "from": 3500
+    },
+    {
+      "name": "Титан",
+      "from": 6500
+    },
+    {
+      "name": "Мастер",
+      "from": 12000
+    },
+    {
+      "name": "Чемпион",
+      "from": 20000
+    },
+    {
+      "name": "Элита",
+      "from": 32000
+    }
+  ],
+  "categories": [
+    {
+      "id": "care",
+      "name": "Забота"
+    },
+    {
+      "id": "keep",
+      "name": "Постоянство"
+    },
+    {
+      "id": "method",
+      "name": "Методика"
+    },
+    {
+      "id": "results",
+      "name": "Результаты учеников"
+    },
+    {
+      "id": "secret",
+      "name": "Секретные"
+    }
+  ],
+  "points": 4600,
+  "rank": 5,
+  "gates": {
+    "base": {
+      "rep": 20,
+      "mon": 6,
+      "wk": 12,
+      "plan": 2,
+      "race": 2,
+      "stu": 1
+    },
+    "step": [
+      1,
+      1,
+      1,
+      2,
+      4,
+      6,
+      8,
+      10
+    ]
+  },
+  "items": [
+    {
+      "id": "reply",
+      "category": "care",
+      "kind": "tier",
+      "name": "На связи",
+      "condition": "Как быстро тренер отвечает на отчёты учеников. Берём обычное время ответа: половина ответов приходит быстрее него",
+      "thresholds": [
+        720,
+        480,
+        360,
+        240,
+        180,
+        120,
+        60,
+        30
+      ],
+      "direction": -1,
+      "start": 1440,
+      "unit": null,
+      "format": "dur",
+      "labels": [
+        "до 12 ч",
+        "до 8 ч",
+        "до 6 ч",
+        "до 4 ч",
+        "до 3 ч",
+        "до 2 ч",
+        "до 1 ч",
+        "до 30 мин"
+      ],
+      "label_unit": "",
+      "card_number": [
+        "до 12 ч",
+        "до 8 ч",
+        "до 6 ч",
+        "до 4 ч",
+        "до 3 ч",
+        "до 2 ч",
+        "до 1 ч",
+        "до 30 мин"
+      ],
+      "card_text": [
+        "до 12 ч",
+        "до 8 ч",
+        "до 6 ч",
+        "до 4 ч",
+        "до 3 ч",
+        "до 2 ч",
+        "до 1 ч",
+        "до 30 мин"
+      ],
+      "source": "Отчёты учеников и ответы тренера",
+      "value": 132,
+      "dates": [
+        "2024-06-02",
+        "2024-07-14",
+        "2024-09-01",
+        "2025-01-19",
+        "2025-08-24"
+      ],
+      "data": {
+        "n": 1400,
+        "v": 132
+      },
+      "rarity": [
+        92,
+        55.2,
+        32.2,
+        16.56,
+        9.2,
+        4.6,
+        1.38,
+        0.28
+      ]
+    },
+    {
+      "id": "tenure",
+      "category": "keep",
+      "kind": "tier",
+      "name": "Удержание",
+      "condition": "Сколько месяцев в среднем ученик занимается у тренера. Считаем по продлениям: если каждый месяц уходит 1 ученик из 10, ученик в среднем остаётся 10 месяцев",
+      "thresholds": [
+        3,
+        4,
+        5,
+        6,
+        8,
+        10,
+        14,
+        20
+      ],
+      "direction": 1,
+      "unit": null,
+      "format": "mo",
+      "labels": [
+        "3 мес.",
+        "4 мес.",
+        "5 мес.",
+        "6 мес.",
+        "8 мес.",
+        "10 мес.",
+        "14 мес.",
+        "20 мес."
+      ],
+      "label_unit": "в среднем",
+      "card_number": [
+        "3 мес.",
+        "4 мес.",
+        "5 мес.",
+        "6 мес.",
+        "8 мес.",
+        "10 мес.",
+        "14 мес.",
+        "20 мес."
+      ],
+      "card_text": [
+        "3 мес. в среднем",
+        "4 мес. в среднем",
+        "5 мес. в среднем",
+        "6 мес. в среднем",
+        "8 мес. в среднем",
+        "10 мес. в среднем",
+        "14 мес. в среднем",
+        "20 мес. в среднем"
+      ],
+      "source": "Выбор тренера и оплаты",
+      "value": 12,
+      "dates": [
+        "2024-06-30",
+        "2024-07-30",
+        "2024-08-30",
+        "2024-10-30",
+        "2024-12-01",
+        "2025-06-15"
+      ],
+      "data": {
+        "n": 192,
+        "x": 176
+      },
+      "rarity": [
+        88,
+        52.8,
+        30.8,
+        15.84,
+        8.8,
+        4.4,
+        1.32,
+        0.26
+      ]
+    },
+    {
+      "id": "longest",
+      "category": "keep",
+      "kind": "tier",
+      "name": "Вместе долго",
+      "condition": "Рекорд тренера: сколько месяцев подряд у него занимается или занимался один ученик",
+      "thresholds": [
+        2,
+        3,
+        6,
+        9,
+        12,
+        18,
+        24,
+        36
+      ],
+      "direction": 1,
+      "unit": "mon",
+      "format": "number",
+      "card_number": [
+        "2",
+        "3",
+        "6",
+        "9",
+        "12",
+        "18",
+        "24",
+        "36"
+      ],
+      "card_text": [
+        "2 месяца",
+        "3 месяца",
+        "6 месяцев",
+        "9 месяцев",
+        "12 месяцев",
+        "18 месяцев",
+        "24 месяца",
+        "36 месяцев"
+      ],
+      "source": "Выбор тренера и оплаты",
+      "value": 30,
+      "dates": [
+        "2024-07-15",
+        "2024-08-15",
+        "2024-11-15",
+        "2025-02-15",
+        "2025-05-15",
+        "2025-11-15",
+        "2026-05-15"
+      ],
+      "last": "Атлет 1, с мая 2024",
+      "rarity": [
+        85,
+        51,
+        29.75,
+        15.3,
+        8.5,
+        4.25,
+        1.27,
+        0.26
+      ]
+    },
+    {
+      "id": "exp",
+      "category": "keep",
+      "kind": "tier",
+      "name": "Стаж",
+      "condition": "Сколько месяцев у тренера были ученики на S10",
+      "thresholds": [
+        1,
+        2,
+        3,
+        6,
+        12,
+        18,
+        24,
+        36
+      ],
+      "direction": 1,
+      "unit": "mon",
+      "format": "number",
+      "card_number": [
+        "1",
+        "2",
+        "3",
+        "6",
+        "12",
+        "18",
+        "24",
+        "36"
+      ],
+      "card_text": [
+        "1 месяц",
+        "2 месяца",
+        "3 месяца",
+        "6 месяцев",
+        "12 месяцев",
+        "18 месяцев",
+        "24 месяца",
+        "36 месяцев"
+      ],
+      "source": "Выбор тренера и оплаты",
+      "value": 30,
+      "dates": [
+        "2024-06-01",
+        "2024-07-01",
+        "2024-08-01",
+        "2024-11-01",
+        "2025-05-01",
+        "2025-11-01",
+        "2026-05-01"
+      ],
+      "rarity": [
+        95,
+        57,
+        33.25,
+        17.1,
+        9.5,
+        4.75,
+        1.43,
+        0.29
+      ]
+    },
+    {
+      "id": "exec",
+      "category": "method",
+      "kind": "tier",
+      "name": "Исполнение",
+      "condition": "Какую часть тренировок из плана ученики выполняют: среднее по всем неделям всех учеников",
+      "thresholds": [
+        60,
+        65,
+        70,
+        75,
+        80,
+        85,
+        90,
+        95
+      ],
+      "direction": 1,
+      "unit": null,
+      "format": "pct",
+      "labels": [
+        "от 60%",
+        "от 65%",
+        "от 70%",
+        "от 75%",
+        "от 80%",
+        "от 85%",
+        "от 90%",
+        "от 95%"
+      ],
+      "label_unit": "",
+      "card_number": [
+        "от 60%",
+        "от 65%",
+        "от 70%",
+        "от 75%",
+        "от 80%",
+        "от 85%",
+        "от 90%",
+        "от 95%"
+      ],
+      "card_text": [
+        "от 60%",
+        "от 65%",
+        "от 70%",
+        "от 75%",
+        "от 80%",
+        "от 85%",
+        "от 90%",
+        "от 95%"
+      ],
+      "source": "План и исполнение",
+      "value": 84,
+      "dates": [
+        "2024-08-31",
+        "2024-10-31",
+        "2025-01-31",
+        "2025-05-31",
+        "2026-02-28"
+      ],
+      "data": {
+        "n": 410,
+        "v": 84
+      },
+      "rarity": [
+        80,
+        48,
+        28,
+        14.4,
+        8,
+        4,
+        1.2,
+        0.24
+      ]
+    },
+    {
+      "id": "finish",
+      "category": "method",
+      "kind": "tier",
+      "name": "До конца",
+      "condition": "Какая доля мастер-планов доходит до старта: ученик прошёл весь план и каждую неделю выполнил хотя бы на 80%",
+      "thresholds": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90
+      ],
+      "direction": 1,
+      "unit": null,
+      "format": "pct",
+      "labels": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "label_unit": "",
+      "card_number": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "card_text": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "source": "Мастер-планы и исполнение",
+      "value": 58.3,
+      "dates": [
+        "2024-12-15",
+        "2025-03-30",
+        "2025-07-20",
+        "2026-04-26"
+      ],
+      "data": {
+        "n": 12,
+        "x": 7
+      },
+      "rarity": [
+        70,
+        42,
+        24.5,
+        12.6,
+        7,
+        3.5,
+        1.05,
+        0.21
+      ]
+    },
+    {
+      "id": "pb",
+      "category": "results",
+      "kind": "tier",
+      "name": "Прогресс команды",
+      "condition": "Какая доля учеников обновила личный рекорд за время занятий. Сильный бегун, от 80% по возрастной таблице, засчитывается и за результат в пределах 1% от рекорда: держать такую форму — тоже успех",
+      "thresholds": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90
+      ],
+      "direction": 1,
+      "unit": null,
+      "format": "pct",
+      "labels": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "label_unit": "",
+      "card_number": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "card_text": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "source": "Личные рекорды учеников",
+      "value": 63.6,
+      "dates": [
+        "2024-10-13",
+        "2025-03-09",
+        "2025-04-27",
+        "2025-09-28",
+        "2026-03-08"
+      ],
+      "data": {
+        "n": 11,
+        "x": 7
+      },
+      "rarity": [
+        75,
+        45,
+        26.25,
+        13.5,
+        7.5,
+        3.75,
+        1.13,
+        0.23
+      ]
+    },
+    {
+      "id": "goal",
+      "category": "results",
+      "kind": "tier",
+      "name": "Цель команды",
+      "condition": "Какая доля целевых стартов пробежана на целевое время или быстрее",
+      "thresholds": [
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80,
+        90
+      ],
+      "direction": 1,
+      "unit": null,
+      "format": "pct",
+      "labels": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "label_unit": "",
+      "card_number": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "card_text": [
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%",
+        "от 90%"
+      ],
+      "source": "Мастер-планы и протоколы стартов",
+      "value": 55.6,
+      "dates": [
+        "2025-03-16",
+        "2025-04-27",
+        "2025-10-12",
+        "2026-04-26"
+      ],
+      "data": {
+        "n": 18,
+        "x": 10
+      },
+      "rarity": [
+        60,
+        36,
+        21,
+        10.8,
+        6,
+        3,
+        0.9,
+        0.18
+      ]
+    },
+    {
+      "id": "precise",
+      "category": "method",
+      "kind": "tier",
+      "name": "Точная цель",
+      "condition": "Насколько точно тренер ставит цели: доля целевых стартов, где результат не дальше 2% от цели — не сильно быстрее и не сильно медленнее",
+      "thresholds": [
+        10,
+        20,
+        30,
+        40,
+        50,
+        60,
+        70,
+        80
+      ],
+      "direction": 1,
+      "unit": null,
+      "format": "pct",
+      "labels": [
+        "от 10%",
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%"
+      ],
+      "label_unit": "",
+      "card_number": [
+        "от 10%",
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%"
+      ],
+      "card_text": [
+        "от 10%",
+        "от 20%",
+        "от 30%",
+        "от 40%",
+        "от 50%",
+        "от 60%",
+        "от 70%",
+        "от 80%"
+      ],
+      "source": "Мастер-планы и протоколы стартов",
+      "value": 44.4,
+      "dates": [
+        "2025-04-27",
+        "2025-10-12",
+        "2026-04-26",
+        "2026-10-12"
+      ],
+      "data": {
+        "n": 18,
+        "x": 8
+      },
+      "last": "Атлет 1, марафон: цель 3:00:00, результат 2:58:41",
+      "rarity": [
+        55,
+        33,
+        19.25,
+        9.9,
+        5.5,
+        2.75,
+        0.82,
+        0.17
+      ]
+    },
+    {
+      "id": "grade",
+      "category": "results",
+      "kind": "tier",
+      "name": "Уровень учеников",
+      "condition": "Лучший результат ученика с учётом возраста и пола, в процентах от мирового рекорда для его возраста. 60% — сильный любитель, 70% — региональный уровень, 80% — национальный, 90% — мировой",
+      "thresholds": [
+        50,
+        55,
+        60,
+        65,
+        70,
+        75,
+        80,
+        85
+      ],
+      "direction": 1,
+      "unit": null,
+      "format": "pct",
+      "labels": [
+        "от 50%",
+        "от 55%",
+        "от 60%",
+        "от 65%",
+        "от 70%",
+        "от 75%",
+        "от 80%",
+        "от 85%"
+      ],
+      "label_unit": "",
+      "card_number": [
+        "от 50%",
+        "от 55%",
+        "от 60%",
+        "от 65%",
+        "от 70%",
+        "от 75%",
+        "от 80%",
+        "от 85%"
+      ],
+      "card_text": [
+        "от 50%",
+        "от 55%",
+        "от 60%",
+        "от 65%",
+        "от 70%",
+        "от 75%",
+        "от 80%",
+        "от 85%"
+      ],
+      "source": "Протоколы стартов, возраст и пол учеников",
+      "value": 71.4,
+      "dates": [
+        "2024-07-21",
+        "2024-10-13",
+        "2025-04-27",
+        "2025-10-12",
+        "2026-10-12"
+      ],
+      "last": "Атлет 1, марафон 2:58:41 в 44 года",
+      "rarity": [
+        65,
+        39,
+        22.75,
+        11.7,
+        6.5,
+        3.25,
+        0.97,
+        0.2
+      ]
+    },
+    {
+      "id": "sub3",
+      "category": "secret",
+      "kind": "secret",
+      "name": "Саб 3",
+      "condition": "Ученик пробежал марафон быстрее 3:00:00. Значок на плашке — сколько учеников сделали это у вас за всё время. Если ученик уйдёт, значок останется",
+      "thresholds": [
+        1
+      ],
+      "direction": 1,
+      "unit": null,
+      "format": "number",
+      "labels": [
+        "2:59"
+      ],
+      "opened_text": "марафон быстрее 3:00",
+      "card_number": [
+        "2:59"
+      ],
+      "card_text": [
+        "марафон быстрее 3:00"
+      ],
+      "source": "Протоколы стартов",
+      "value": 1,
+      "dates": [
+        "2024-10-13"
+      ],
+      "last": "Атлет 1, 2:58:41, 12.10.2026",
+      "count": 3,
+      "holders": [
+        {
+          "name": "Атлет 8",
+          "time": "2:59:12",
+          "date": "2024-10-13",
+          "left": true
+        },
+        {
+          "name": "Атлет 7",
+          "time": "2:56:30",
+          "date": "2025-04-27",
+          "left": true
+        },
+        {
+          "name": "Атлет 1",
+          "time": "2:58:41",
+          "date": "2026-10-12"
+        }
+      ],
+      "rarity": [
+        6
+      ]
+    },
+    {
+      "id": "s_1",
+      "kind": "secret",
+      "category": "secret",
+      "locked": true,
+      "rarity": [
+        4
+      ]
+    },
+    {
+      "id": "s_2",
+      "kind": "secret",
+      "category": "secret",
+      "locked": true,
+      "rarity": [
+        9
+      ]
+    },
+    {
+      "id": "s_3",
+      "kind": "secret",
+      "category": "secret",
+      "locked": true,
+      "rarity": [
+        1
+      ]
+    }
+  ],
+  "students": [
+    {
+      "id": "an",
+      "name": "Атлет 1",
+      "initials": "А1",
+      "months": 30,
+      "rank": 5,
+      "points": 12450,
+      "consent": "yes",
+      "near": "Марафон: Чемпион, быстрее на 18:41",
+      "achievements": [
+        {
+          "key": "m1",
+          "athlete_id": "an",
+          "athlete_name": "Атлет 1",
+          "achievement": "sub3",
+          "name": "Саб 3",
+          "kind": "secret",
+          "level": 1,
+          "number": "2:59",
+          "text": "быстрее 3:00",
+          "date": "2026-10-12"
+        },
+        {
+          "key": "m2",
+          "athlete_id": "an",
+          "athlete_name": "Атлет 1",
+          "achievement": "pr42",
+          "name": "Марафон",
+          "kind": "tier",
+          "level": 6,
+          "number": "из 3:15",
+          "text": "из 3:15 ч",
+          "date": "2025-10-12"
+        },
+        {
+          "key": "m3",
+          "athlete_id": "an",
+          "athlete_name": "Атлет 1",
+          "achievement": "pr21",
+          "name": "Полумарафон",
+          "kind": "tier",
+          "level": 5,
+          "number": "из 1:35",
+          "text": "из 1:35 ч",
+          "date": "2025-04-27"
+        },
+        {
+          "key": "m4",
+          "athlete_id": "an",
+          "athlete_name": "Атлет 1",
+          "achievement": "km_total",
+          "name": "Километраж",
+          "kind": "tier",
+          "level": 6,
+          "number": "5 000",
+          "text": "5 000 км",
+          "date": "2025-08-03"
+        }
+      ]
+    },
+    {
+      "id": "ak",
+      "name": "Атлет 2",
+      "initials": "А2",
+      "months": 18,
+      "rank": 4,
+      "points": 7120,
+      "consent": "yes",
+      "near": "Десятка: Мастер, быстрее на 2:20",
+      "achievements": [
+        {
+          "key": "k1",
+          "athlete_id": "ak",
+          "athlete_name": "Атлет 2",
+          "achievement": "pr5",
+          "name": "Пятёрка",
+          "kind": "tier",
+          "level": 6,
+          "number": "из 20",
+          "text": "из 20 минут",
+          "date": "2026-03-08"
+        },
+        {
+          "key": "k2",
+          "athlete_id": "ak",
+          "athlete_name": "Атлет 2",
+          "achievement": "pr10",
+          "name": "Десятка",
+          "kind": "tier",
+          "level": 5,
+          "number": "из 42",
+          "text": "из 42 минут",
+          "date": "2025-10-12"
+        },
+        {
+          "key": "k3",
+          "athlete_id": "ak",
+          "athlete_name": "Атлет 2",
+          "achievement": "weeks_streak",
+          "name": "Без пропусков",
+          "kind": "tier",
+          "level": 5,
+          "number": "16",
+          "text": "16 недель",
+          "date": "2025-12-21"
+        }
+      ]
+    },
+    {
+      "id": "as",
+      "name": "Атлет 3",
+      "initials": "А3",
+      "months": 9,
+      "rank": 3,
+      "points": 5285,
+      "consent": "pending",
+      "near": "Тысячник: Серебро, ещё 46 км",
+      "page": "/achievements/athlete?id=as",
+      "achievements": [
+        {
+          "key": "s1",
+          "athlete_id": "as",
+          "athlete_name": "Атлет 3",
+          "achievement": "pr5",
+          "name": "Пятёрка",
+          "kind": "tier",
+          "level": 6,
+          "number": "из 20",
+          "text": "из 20 минут",
+          "date": "2026-02-15"
+        },
+        {
+          "key": "s2",
+          "athlete_id": "as",
+          "athlete_name": "Атлет 3",
+          "achievement": "km_total",
+          "name": "Километраж",
+          "kind": "tier",
+          "level": 5,
+          "number": "3 500",
+          "text": "3 500 км",
+          "date": "2025-10-19"
+        },
+        {
+          "key": "s3",
+          "athlete_id": "as",
+          "athlete_name": "Атлет 3",
+          "achievement": "km1",
+          "name": "Быстрый километр",
+          "kind": "tier",
+          "level": 4,
+          "number": "из 3:40",
+          "text": "из 3:40 мин",
+          "date": "2026-10-22"
+        }
+      ]
+    },
+    {
+      "id": "om",
+      "name": "Атлет 4",
+      "initials": "А4",
+      "months": 11,
+      "rank": 2,
+      "points": 2380,
+      "consent": "yes",
+      "near": "Длинная дистанция: Титан, ещё 7,8 км",
+      "achievements": [
+        {
+          "key": "o1",
+          "athlete_id": "om",
+          "athlete_name": "Атлет 4",
+          "achievement": "longest",
+          "name": "Длинная дистанция",
+          "kind": "tier",
+          "level": 4,
+          "number": "42,2",
+          "text": "42,2 км",
+          "date": "2026-04-26"
+        },
+        {
+          "key": "o2",
+          "athlete_id": "om",
+          "athlete_name": "Атлет 4",
+          "achievement": "full_set",
+          "name": "Полный набор",
+          "kind": "one",
+          "level": 1,
+          "number": "4",
+          "text": "4 дистанции",
+          "date": "2026-04-26"
+        }
+      ]
+    },
+    {
+      "id": "dr",
+      "name": "Атлет 5",
+      "initials": "А5",
+      "months": 6,
+      "rank": 4,
+      "points": 6830,
+      "consent": "no",
+      "near": "Большая неделя: Чемпион, ещё 34 км",
+      "achievements": [
+        {
+          "key": "d1",
+          "athlete_id": "dr",
+          "athlete_name": "Атлет 5",
+          "achievement": "week_big",
+          "name": "Большая неделя",
+          "kind": "tier",
+          "level": 6,
+          "number": "120",
+          "text": "120 км",
+          "date": "2026-08-30"
+        },
+        {
+          "key": "d2",
+          "athlete_id": "dr",
+          "athlete_name": "Атлет 5",
+          "achievement": "month_big",
+          "name": "Марафонский месяц",
+          "kind": "tier",
+          "level": 6,
+          "number": "400",
+          "text": "400 км",
+          "date": "2026-08-31"
+        }
+      ]
+    },
+    {
+      "id": "it",
+      "name": "Атлет 6",
+      "initials": "А6",
+      "months": 4,
+      "rank": 3,
+      "points": 4060,
+      "consent": "none",
+      "near": "Неделя по плану: Титан, ещё 3 недели",
+      "achievements": [
+        {
+          "key": "t1",
+          "athlete_id": "it",
+          "athlete_name": "Атлет 6",
+          "achievement": "weeks_streak",
+          "name": "Без пропусков",
+          "kind": "tier",
+          "level": 4,
+          "number": "12",
+          "text": "12 недель",
+          "date": "2026-10-25"
+        },
+        {
+          "key": "t2",
+          "athlete_id": "it",
+          "athlete_name": "Атлет 6",
+          "achievement": "master",
+          "name": "Цикл до конца",
+          "kind": "one",
+          "level": 1,
+          "number": "16",
+          "text": "16 недель",
+          "date": "2026-10-25"
+        }
+      ]
+    }
+  ],
+  "showcase": [
+    {
+      "key": "m1",
+      "athlete_id": "an",
+      "athlete_name": "Атлет 1",
+      "achievement": "sub3",
+      "name": "Саб 3",
+      "kind": "secret",
+      "level": 1,
+      "number": "2:59",
+      "text": "быстрее 3:00",
+      "date": "2026-10-12"
+    },
+    {
+      "key": "m2",
+      "athlete_id": "an",
+      "athlete_name": "Атлет 1",
+      "achievement": "pr42",
+      "name": "Марафон",
+      "kind": "tier",
+      "level": 6,
+      "number": "из 3:15",
+      "text": "из 3:15 ч",
+      "date": "2025-10-12"
+    },
+    {
+      "key": "k1",
+      "athlete_id": "ak",
+      "athlete_name": "Атлет 2",
+      "achievement": "pr5",
+      "name": "Пятёрка",
+      "kind": "tier",
+      "level": 6,
+      "number": "из 20",
+      "text": "из 20 минут",
+      "date": "2026-03-08"
+    },
+    {
+      "key": "k2",
+      "athlete_id": "ak",
+      "athlete_name": "Атлет 2",
+      "achievement": "pr10",
+      "name": "Десятка",
+      "kind": "tier",
+      "level": 5,
+      "number": "из 42",
+      "text": "из 42 минут",
+      "date": "2025-10-12"
+    },
+    {
+      "key": "o1",
+      "athlete_id": "om",
+      "athlete_name": "Атлет 4",
+      "achievement": "longest",
+      "name": "Длинная дистанция",
+      "kind": "tier",
+      "level": 4,
+      "number": "42,2",
+      "text": "42,2 км",
+      "date": "2026-04-26"
+    }
+  ],
+  "events": [
+    {
+      "id": 2000,
+      "achievement": "grade",
+      "level": 5,
+      "date": "2026-10-12",
+      "celebrated": false
+    },
+    {
+      "id": 1999,
+      "achievement": "precise",
+      "level": 4,
+      "date": "2026-10-12",
+      "celebrated": true
+    },
+    {
+      "id": 1998,
+      "achievement": "longest",
+      "level": 7,
+      "date": "2026-05-15",
+      "celebrated": true
+    },
+    {
+      "id": 1997,
+      "achievement": "exp",
+      "level": 7,
+      "date": "2026-05-01",
+      "celebrated": true
+    },
+    {
+      "id": 1996,
+      "achievement": "finish",
+      "level": 4,
+      "date": "2026-04-26",
+      "celebrated": true
+    },
+    {
+      "id": 1995,
+      "achievement": "goal",
+      "level": 4,
+      "date": "2026-04-26",
+      "celebrated": true
+    },
+    {
+      "id": 1994,
+      "achievement": "precise",
+      "level": 3,
+      "date": "2026-04-26",
+      "celebrated": true
+    },
+    {
+      "id": 1993,
+      "achievement": "pb",
+      "level": 5,
+      "date": "2026-03-08",
+      "celebrated": true
+    },
+    {
+      "id": 1992,
+      "achievement": "exec",
+      "level": 5,
+      "date": "2026-02-28",
+      "celebrated": true
+    },
+    {
+      "id": 1991,
+      "achievement": "longest",
+      "level": 6,
+      "date": "2025-11-15",
+      "celebrated": true
+    },
+    {
+      "id": 1990,
+      "achievement": "exp",
+      "level": 6,
+      "date": "2025-11-01",
+      "celebrated": true
+    },
+    {
+      "id": 1989,
+      "achievement": "goal",
+      "level": 3,
+      "date": "2025-10-12",
+      "celebrated": true
+    },
+    {
+      "id": 1988,
+      "achievement": "grade",
+      "level": 4,
+      "date": "2025-10-12",
+      "celebrated": true
+    },
+    {
+      "id": 1987,
+      "achievement": "precise",
+      "level": 2,
+      "date": "2025-10-12",
+      "celebrated": true
+    },
+    {
+      "id": 1986,
+      "achievement": "pb",
+      "level": 4,
+      "date": "2025-09-28",
+      "celebrated": true
+    },
+    {
+      "id": 1985,
+      "achievement": "reply",
+      "level": 5,
+      "date": "2025-08-24",
+      "celebrated": true
+    },
+    {
+      "id": 1984,
+      "achievement": "finish",
+      "level": 3,
+      "date": "2025-07-20",
+      "celebrated": true
+    },
+    {
+      "id": 1983,
+      "achievement": "tenure",
+      "level": 6,
+      "date": "2025-06-15",
+      "celebrated": true
+    },
+    {
+      "id": 1982,
+      "achievement": "exec",
+      "level": 4,
+      "date": "2025-05-31",
+      "celebrated": true
+    },
+    {
+      "id": 1981,
+      "achievement": "longest",
+      "level": 5,
+      "date": "2025-05-15",
+      "celebrated": true
+    },
+    {
+      "id": 1980,
+      "achievement": "exp",
+      "level": 5,
+      "date": "2025-05-01",
+      "celebrated": true
+    },
+    {
+      "id": 1979,
+      "achievement": "goal",
+      "level": 2,
+      "date": "2025-04-27",
+      "celebrated": true
+    },
+    {
+      "id": 1978,
+      "achievement": "grade",
+      "level": 3,
+      "date": "2025-04-27",
+      "celebrated": true
+    },
+    {
+      "id": 1977,
+      "achievement": "pb",
+      "level": 3,
+      "date": "2025-04-27",
+      "celebrated": true
+    },
+    {
+      "id": 1976,
+      "achievement": "precise",
+      "level": 1,
+      "date": "2025-04-27",
+      "celebrated": true
+    },
+    {
+      "id": 1975,
+      "achievement": "finish",
+      "level": 2,
+      "date": "2025-03-30",
+      "celebrated": true
+    },
+    {
+      "id": 1974,
+      "achievement": "goal",
+      "level": 1,
+      "date": "2025-03-16",
+      "celebrated": true
+    },
+    {
+      "id": 1973,
+      "achievement": "pb",
+      "level": 2,
+      "date": "2025-03-09",
+      "celebrated": true
+    },
+    {
+      "id": 1972,
+      "achievement": "longest",
+      "level": 4,
+      "date": "2025-02-15",
+      "celebrated": true
+    },
+    {
+      "id": 1971,
+      "achievement": "exec",
+      "level": 3,
+      "date": "2025-01-31",
+      "celebrated": true
+    }
+  ],
+  "rank_events": [
+    {
+      "id": 304,
+      "rank": 5,
+      "date": "2025-11-01",
+      "celebrated": true
+    },
+    {
+      "id": 303,
+      "rank": 4,
+      "date": "2025-04-27",
+      "celebrated": true
+    },
+    {
+      "id": 302,
+      "rank": 3,
+      "date": "2024-10-13",
+      "celebrated": true
+    },
+    {
+      "id": 301,
+      "rank": 2,
+      "date": "2024-09-01",
+      "celebrated": true
+    },
+    {
+      "id": 300,
+      "rank": 1,
+      "date": "2024-07-21",
+      "celebrated": true
+    }
+  ],
+  "visibility": {
+    "audience": "all"
+  },
+  "notifications": [
+    {
+      "id": 90,
+      "type": "consent_pending",
+      "athlete": {
+        "id": "as",
+        "name": "Атлет 3",
+        "initials": "А3"
+      },
+      "date": "2026-11-06",
+      "unread": false
+    },
+    {
+      "id": 80,
+      "type": "level",
+      "event": 2000,
+      "achievement": "grade",
+      "level": 5,
+      "date": "2026-10-12",
+      "unread": true
+    },
+    {
+      "id": 79,
+      "type": "level",
+      "event": 1999,
+      "achievement": "precise",
+      "level": 4,
+      "date": "2026-10-12",
+      "unread": false
+    },
+    {
+      "id": 70,
+      "type": "student_level",
+      "card": {
+        "key": "t1",
+        "athlete_id": "it",
+        "athlete_name": "Атлет 6",
+        "achievement": "weeks_streak",
+        "name": "Без пропусков",
+        "kind": "tier",
+        "level": 4,
+        "number": "12",
+        "text": "12 недель",
+        "date": "2026-10-25"
+      },
+      "date": "2026-10-25",
+      "unread": false
+    },
+    {
+      "id": 69,
+      "type": "student_level",
+      "card": {
+        "key": "t2",
+        "athlete_id": "it",
+        "athlete_name": "Атлет 6",
+        "achievement": "master",
+        "name": "Цикл до конца",
+        "kind": "one",
+        "level": 1,
+        "number": "16",
+        "text": "16 недель",
+        "date": "2026-10-25"
+      },
+      "date": "2026-10-25",
+      "unread": false
+    },
+    {
+      "id": 65,
+      "type": "counter",
+      "achievement": "sub3",
+      "count": 3,
+      "name": "Атлет 1",
+      "time": "2:58:41",
+      "date": "2026-10-12",
+      "unread": false
+    },
+    {
+      "id": 60,
+      "type": "rank",
+      "rank": 5,
+      "date": "2025-11-01",
+      "unread": false
+    }
+  ]
+}

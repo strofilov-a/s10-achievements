@@ -1,0 +1,9 @@
+{
+  "hidden": true,
+  "coach": {
+    "id": 12,
+    "name": "Тренер",
+    "initials": "Т",
+    "students": 6
+  }
+}
