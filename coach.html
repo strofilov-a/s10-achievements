@@ -430,6 +430,8 @@ dialog.narrow { max-width: 520px; }
 .srow { display: grid; grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "av name name btn" "rk rk last last"; gap: 10px 14px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-row); padding: 12px 14px; }
 .srow .sav { grid-area: av; } .srow .sn2 { grid-area: name; min-width: 0; } .srow .sopen { grid-area: btn; }
 .srow .srk { grid-area: rk; } .srow .slast { grid-area: last; }
+/* the rank and the last achievement each sit on a faint ground, so a plate and its words read as one */
+.srow .srk, .srow .slast { align-self: stretch; background: var(--panel); border-radius: var(--r-row); padding: 8px 10px; }
 /* the last achievement: its level in the plate band, the date alone beside it */
 .srow .slast .mb.lv { width: 80px; height: 46px; }
 .srow .slast .mb.lv i { height: 17px; font: 500 10.5px/17px var(--font); font-style: normal; color: var(--bci); text-align: center; white-space: nowrap; overflow: hidden; padding: 0 3px; }
@@ -480,7 +482,10 @@ dialog.narrow { max-width: 520px; }
   .srow { grid-template-columns: 32px minmax(0, 1fr); grid-template-areas: "av name" "rk rk" "last last" "btn btn"; gap: 10px; padding: 10px; }
   .srow .sav { width: 32px; height: 32px; font-size: 12px; line-height: 32px; }
   .srow .sopen { justify-self: stretch; padding: 0 8px; font-size: 13px; }
-  .srow .srk .emb { width: 28px; height: 30px; }
+  .srow .srk .emb { width: 24px; height: 26px; }
+  .srow .srk small { white-space: nowrap; }
+  .srow .srk, .srow .slast { padding: 6px 8px; gap: 8px; }
+  .srow .srk small, .srow .slast small { font-size: 12px; }
   .srow .slast .mb { display: none; }
   .srow .lvt { display: inline; } /* no plate on a phone, so the level goes back into the line */
   .slot { min-height: 96px; }
