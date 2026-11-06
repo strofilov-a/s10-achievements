@@ -421,6 +421,7 @@ dialog.narrow { max-width: 520px; }
 .phead .cn { font: 700 24px/30px var(--font); margin: 0; }
 .phead .cm { margin: 2px 0 0; font-size: 14px; line-height: 20px; color: var(--muted); }
 .rank .rlab { margin: 0 0 2px; font-size: 13px; line-height: 18px; color: var(--muted); }
+.rank .rnote { margin: 2px 0 0; font-size: 13px; line-height: 18px; color: var(--muted); }
 .ph .edit { margin-left: auto; color: var(--text); }
 .slist { display: flex; flex-direction: column; gap: 8px; }
 .srow { display: grid; grid-template-columns: 40px minmax(110px, 1fr) minmax(140px, 1fr) minmax(170px, 1.3fr) minmax(170px, 1.4fr) auto; gap: 16px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-row); padding: 10px 14px; }
@@ -454,6 +455,11 @@ dialog.narrow { max-width: 520px; }
 .prow.off b { color: var(--muted); }
 .btn.ask { line-height: 30px; padding: 0 12px; font-size: 13px; }
 .linkbtn[disabled] { color: var(--faint); cursor: default; text-decoration: none; }
+.cgrp { margin-top: 24px; }
+#legends .cgrp { margin-top: 0; }
+.cgrp .ph { margin-bottom: 12px; }
+.cgrp h3 { font: 500 16px/22px var(--font); margin: 0; }
+.cgrp .bibs { margin-top: 0; }
 @media (max-width: 1040px) {
   .bibs.c6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .bibs.c5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -513,7 +519,7 @@ dialog.narrow { max-width: 520px; }
   <section aria-labelledby="all-h">
     <div class="allh"><h2 id="all-h">Достижения тренера</h2></div>
     <div id="legends"></div>
-    <div class="bibs c5" id="all"></div>
+    <div id="all"></div>
   </section>
 </main>
 
@@ -744,27 +750,29 @@ function emblem(r) {
 const ATHLETE_PAGE = 'index.html'; // the athlete achievements prototype
 const COACH = { name: 'Тренер', initials: 'Т', students: 6 };
 // coach ranks: the same eight metals, their own thresholds and a navy frame (see PLATE)
-// a profile is the average level held across the ten tiered coach achievements:
-// a first season ~100, a year ~350, two years ~850, a strong coach ~1 850, the best ~3 350 and ~5 350, the very best ~8 350
-const C_RANKS = RANKS.map((r, i) => ({ ...r, from: [0, 100, 300, 800, 1600, 3000, 5000, 8000][i] }));
-const U = { mon: ['месяц', 'месяца', 'месяцев'], min: ['минута', 'минуты', 'минут'], pt: ['очко', 'очка', 'очков'], stu: ['ученик', 'ученика', 'учеников'], rep: ['отчёт', 'отчёта', 'отчётов'], race: ['целевой старт', 'целевых старта', 'целевых стартов'] };
+// the rank counts the six strongest achievements and every opened secret, so a weak side does not pull a coach down
+// (a coach of world-class runners need not show a big team progress): an average coach, about Platinum in each, ~1 100,
+// a strong one ~2 900, the very best ~5 500 and up
+const C_RANKS = RANKS.map((r, i) => ({ ...r, from: [0, 150, 500, 1000, 1800, 2800, 4000, 5500][i] }));
+const RANK_BEST = 6;
+const U = { mon: ['месяц', 'месяца', 'месяцев'], min: ['минута', 'минуты', 'минут'], pt: ['очко', 'очка', 'очков'], stu: ['ученик', 'ученика', 'учеников'], rep: ['отчёт', 'отчёта', 'отчётов'], race: ['целевой старт', 'целевых старта', 'целевых стартов'], plan: ['мастер-план', 'мастер-плана', 'мастер-планов'] };
 const CATS = [
-  { id: 'care', name: 'Забота' }, { id: 'keep', name: 'Удержание' }, { id: 'method', name: 'Методика' },
+  { id: 'care', name: 'Забота' }, { id: 'keep', name: 'Постоянство' }, { id: 'method', name: 'Методика' },
   { id: 'results', name: 'Результаты учеников' }, { id: 'secret', name: 'Секретные' },
 ];
 const pctLab = th => th.map(t => `от ${t}%`);
 // nothing here counts students: shares, averages and single best results only;
-// shares need 3 students, 20 reports or 3 target races in the last 12 months, and a student's result counts after 8 weeks with the coach
+// a share with little behind it leans on the S10 average (sm, see below), and a student's result counts after 8 weeks with the coach
 const A = [
-  { id: 'reply', cat: 'care', kind: 'tier', name: 'На связи', cond: 'Медианное время ответа на отчёт ученика за последние 12 месяцев', th: [720, 480, 360, 240, 180, 120, 60, 30], dir: -1, start: 1440, fmt: 'dur', lab: ['до 12 ч', 'до 8 ч', 'до 6 ч', 'до 4 ч', 'до 3 ч', 'до 2 ч', 'до 1 ч', 'до 30 мин'], bu: '', val: 150, d: ['2024-06-02', '2024-07-14', '2024-09-01', '2025-01-19', '2025-08-24'], r: 92, src: 'Отчёты учеников и ответы тренера' },
-  { id: 'tenure', cat: 'keep', kind: 'tier', name: 'Надёжный', cond: 'Средний срок занятий учеников', th: [1, 1.5, 2, 3, 4, 6, 9, 12], u: 'mon', fmt: 'dec', val: 7, d: ['2024-06-30', '2024-07-30', '2024-08-30', '2024-10-30', '2024-12-01', '2025-06-15'], r: 88, src: 'Выбор тренера и оплаты' },
+  { id: 'reply', cat: 'care', kind: 'tier', name: 'На связи', cond: 'Медианное время ответа на отчёт ученика за последние 12 месяцев', th: [720, 480, 360, 240, 180, 120, 60, 30], dir: -1, start: 1440, fmt: 'dur', lab: ['до 12 ч', 'до 8 ч', 'до 6 ч', 'до 4 ч', 'до 3 ч', 'до 2 ч', 'до 1 ч', 'до 30 мин'], bu: '', val: 150, d: ['2024-06-02', '2024-07-14', '2024-09-01', '2025-01-19', '2025-08-24'], sm: { of: 'rep', v: 132, n: 240, p: 360 }, r: 92, src: 'Отчёты учеников и ответы тренера' },
+  { id: 'tenure', cat: 'keep', kind: 'tier', name: 'Удержание', cond: 'Доля учеников, которые занимались хотя бы 3 месяца. Считаются только те, кто пришёл больше 3 месяцев назад: новичок не портит цифру, пока у него не было шанса', th: [30, 40, 50, 60, 70, 80, 85, 90], lab: pctLab([30, 40, 50, 60, 70, 80, 85, 90]), bu: '', fmt: 'pct', val: 80, sm: { of: 'stu', x: 9, n: 10, p: 60 }, d: ['2024-06-30', '2024-07-30', '2024-08-30', '2024-10-30', '2024-12-01', '2025-06-15'], r: 88, src: 'Выбор тренера и оплаты' },
   { id: 'longest', cat: 'keep', kind: 'tier', name: 'Вместе долго', cond: 'Самый долгий ученик у этого тренера', th: [2, 3, 6, 9, 12, 18, 24, 36], u: 'mon', val: 22, d: ['2024-07-15', '2024-08-15', '2024-11-15', '2025-02-15', '2025-05-15', '2025-11-15'], ev: 'Атлет 1, с мая 2024', r: 85, src: 'Выбор тренера и оплаты' },
   { id: 'exp', cat: 'keep', kind: 'tier', name: 'Стаж', cond: 'Месяцы тренерства на S10', th: [1, 2, 3, 6, 12, 18, 24, 36], u: 'mon', val: 30, d: ['2024-06-01', '2024-07-01', '2024-08-01', '2024-11-01', '2025-05-01', '2025-11-01', '2026-05-01'], r: 95, src: 'Профиль тренера' },
-  { id: 'exec', cat: 'method', kind: 'tier', name: 'Исполнение', cond: 'Среднее выполнение планов учеников за последние 12 месяцев', th: [60, 65, 70, 75, 80, 85, 90, 95], lab: pctLab([60, 65, 70, 75, 80, 85, 90, 95]), bu: '', fmt: 'pct', val: 84, d: ['2024-08-31', '2024-10-31', '2025-01-31', '2025-05-31', '2026-02-28'], r: 80, src: 'План и исполнение' },
-  { id: 'finish', cat: 'method', kind: 'tier', name: 'До конца', cond: 'Доля мастер-планов, которые ученики прошли целиком с выполнением от 80%', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 55, d: ['2024-12-15', '2025-03-30', '2025-07-20', '2026-04-26'], r: 70, src: 'Мастер-планы и исполнение' },
-  { id: 'pb', cat: 'results', kind: 'tier', name: 'Прогресс команды', cond: 'Доля учеников, которые обновили личный рекорд за последние 12 месяцев', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 67, d: ['2024-10-13', '2025-03-09', '2025-04-27', '2025-09-28', '2026-03-08'], r: 75, src: 'Личные рекорды учеников' },
-  { id: 'goal', cat: 'results', kind: 'tier', name: 'Цель команды', cond: 'Доля целевых стартов, где ученик пробежал на целевое время или быстрее', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 58, d: ['2025-03-16', '2025-04-27', '2025-10-12', '2026-04-26'], r: 60, src: 'Мастер-планы и протоколы стартов' },
-  { id: 'precise', cat: 'method', kind: 'tier', name: 'Точная цель', cond: 'Доля целевых стартов, где результат не дальше 2% от целевого времени, быстрее или медленнее', th: [10, 20, 30, 40, 50, 60, 70, 80], lab: pctLab([10, 20, 30, 40, 50, 60, 70, 80]), bu: '', fmt: 'pct', val: 46, d: ['2025-04-27', '2025-10-12', '2026-04-26', '2026-10-12'], ev: 'Атлет 1, марафон: цель 3:00:00, результат 2:58:41', r: 55, src: 'Мастер-планы и протоколы стартов' }, // the pair of «Цель команды»: an easy goal stops paying
+  { id: 'exec', cat: 'method', kind: 'tier', name: 'Исполнение', cond: 'Среднее выполнение планов учеников за последние 12 месяцев', th: [60, 65, 70, 75, 80, 85, 90, 95], lab: pctLab([60, 65, 70, 75, 80, 85, 90, 95]), bu: '', fmt: 'pct', val: 84, d: ['2024-08-31', '2024-10-31', '2025-01-31', '2025-05-31', '2026-02-28'], sm: { of: 'stu', v: 86, n: 6, p: 75 }, r: 80, src: 'План и исполнение' },
+  { id: 'finish', cat: 'method', kind: 'tier', name: 'До конца', cond: 'Доля мастер-планов, которые ученики прошли целиком с выполнением от 80%', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 55, d: ['2024-12-15', '2025-03-30', '2025-07-20', '2026-04-26'], sm: { of: 'plan', x: 7, n: 11, p: 45 }, r: 70, src: 'Мастер-планы и исполнение' },
+  { id: 'pb', cat: 'results', kind: 'tier', name: 'Прогресс команды', cond: 'Доля учеников, которые обновили личный рекорд за последние 12 месяцев. Сильный ученик, от 80% по возрастной таблице, засчитывается и без рекорда, если пробежал в пределах 1% от него', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 67, d: ['2024-10-13', '2025-03-09', '2025-04-27', '2025-09-28', '2026-03-08'], sm: { of: 'stu', x: 5, n: 6, p: 50 }, r: 75, src: 'Личные рекорды учеников' },
+  { id: 'goal', cat: 'results', kind: 'tier', name: 'Цель команды', cond: 'Доля целевых стартов, где ученик пробежал на целевое время или быстрее', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 58, d: ['2025-03-16', '2025-04-27', '2025-10-12', '2026-04-26'], sm: { of: 'race', x: 7, n: 12, p: 45 }, r: 60, src: 'Мастер-планы и протоколы стартов' },
+  { id: 'precise', cat: 'method', kind: 'tier', name: 'Точная цель', cond: 'Доля целевых стартов, где результат не дальше 2% от целевого времени, быстрее или медленнее', th: [10, 20, 30, 40, 50, 60, 70, 80], lab: pctLab([10, 20, 30, 40, 50, 60, 70, 80]), bu: '', fmt: 'pct', val: 46, d: ['2025-04-27', '2025-10-12', '2026-04-26', '2026-10-12'], ev: 'Атлет 1, марафон: цель 3:00:00, результат 2:58:41', sm: { of: 'race', x: 6, n: 12, p: 30 }, r: 55, src: 'Мастер-планы и протоколы стартов' }, // the pair of «Цель команды»: an easy goal stops paying
   { id: 'grade', cat: 'results', kind: 'tier', name: 'Уровень учеников', cond: 'Лучший результат ученика с поправкой на возраст и пол, в процентах от мирового рекорда для его возраста', th: [50, 55, 60, 65, 70, 75, 80, 85], lab: pctLab([50, 55, 60, 65, 70, 75, 80, 85]), bu: '', fmt: 'pct', val: 71.4, d: ['2024-07-21', '2024-10-13', '2025-04-27', '2025-10-12', '2026-10-12'], ev: 'Атлет 1, марафон 2:58:41 в 44 года', r: 65, src: 'Протоколы стартов, возраст и пол учеников' },
   { id: 'sub3', cat: 'secret', kind: 'secret', name: 'Из трёх в команде', cond: 'Ученик пробежал марафон быстрее 3:00:00', th: [1], lab: ['2:59'], got: 'ученик быстрее 3:00', val: 1, d: ['2026-10-12'], ev: 'Атлет 1, 2:58:41, 12.10.2026', r: 6, src: 'Протоколы стартов' },
   { id: 'bq', cat: 'secret', kind: 'secret', name: 'Бостон', cond: 'Ученик пробежал марафон быстрее квалификационного норматива Бостона для своего возраста и пола', th: [1], lab: ['BQ'], got: 'квалификация ученика', val: 0, d: [], r: 4, src: 'Протоколы стартов, возраст и пол учеников' },
@@ -788,30 +796,39 @@ const S = [
   { id: 'it', name: 'Атлет 6', ini: 'А6', months: 4, rank: 3, pts: 4060, consent: 'none', near: 'Неделя по плану: Титан, ещё 3 недели',
     ach: [['Без пропусков', 'Платина', '12 недель', '2026-10-25', 't1', '12'], ['Цикл до конца', 'Получено', '16 недель', '2026-10-25', 't2', '16']] },
 ];
-/* ---------- prototype states (the URL hash): #empty (no students yet), #few (two new students, too little data), #loading, #error ---------- */
+/* ---------- prototype states (the URL hash): #few (a new coach, two students), #empty (no students yet), #public (as an athlete sees the coach), #loading, #error ---------- */
 const DEMO = location.hash.slice(1);
-const VIEW = 'own'; // the shared card reads it; this page is always the coach's own
+const VIEW = DEMO === 'public' ? 'friend' : 'own'; // the shared card reads it: another person sees the levels and their dates, not the figures
 addEventListener('hashchange', () => location.reload());
-// the least a share needs before it says something about the coach and not about one student (the spec, «Достижения тренера»)
-const MIN = { reply: [20, U.rep], tenure: [3, U.stu], exec: [3, U.stu], finish: [3, U.stu], pb: [3, U.stu], grade: [3, U.stu], goal: [3, U.race], precise: [3, U.race] };
 if (DEMO === 'empty' || DEMO === 'few') {
   const few = DEMO === 'few';
   S.splice(0, few ? 4 : S.length); // the two newest students, or none
-  const have = { [U.stu]: S.length, [U.rep]: few ? 14 : 0, [U.race]: few ? 1 : 0 };
+  // what a new coach's data says so far: tiny samples, so the S10 average carries most of each share
+  const data = few ? { reply: { v: 420, n: 14 }, tenure: { x: 2, n: 2 }, exec: { v: 70, n: 2 }, finish: { x: 0, n: 0 }, pb: { x: 0, n: 2 }, goal: { x: 0, n: 1 }, precise: { x: 1, n: 1 } } : {};
   A.forEach(a => {
-    a.d = []; delete a.ev;
+    delete a.ev;
     a.val = dir(a) === -1 ? a.start : 0;
-    const m = MIN[a.id];
-    if (m) a.short = `${have[m[1]]} из ${m[0]} ${m[1][2]}`;
+    if (a.sm) a.sm = { of: a.sm.of, p: a.sm.p, n: 0, ...data[a.id] };
   });
-  // what has no figure yet says so in words
-  const none = few ? {} : { longest: 'Пока нет учеников', exp: 'Меньше месяца на S10' };
-  Object.entries(none).forEach(([id, text]) => { A.find(a => a.id === id).none = text; });
-  if (few) {
-    Object.assign(A.find(a => a.id === 'longest'), { val: 6, d: ['2026-07-01', '2026-08-01', '2026-11-01'], ev: 'Атлет 5, с мая 2026' });
-    Object.assign(A.find(a => a.id === 'exp'), { val: 6, d: ['2026-06-01', '2026-07-01', '2026-08-01', '2026-11-01'] });
-  }
+  const set = (id, o) => Object.assign(A.find(a => a.id === id), o);
+  if (few) { set('longest', { val: 6, ev: 'Атлет 5, с мая 2026' }); set('exp', { val: 6 }); set('grade', { val: 58 }); }
+  else { set('longest', { none: 'Пока нет учеников' }); set('exp', { none: 'Меньше месяца на S10' }); set('grade', { none: 'Пока нет результата' }); }
 }
+// a small sample leans on the S10 average instead of waiting for a hard minimum: (n × own value + K × average) / (n + K),
+// K = 5 students, plans or races, 20 reports. A coach of two world-class runners gets a fair figure, one lucky student
+// does not make 100%, and with nothing at all there is no figure yet
+const K = { stu: 5, plan: 5, race: 5, rep: 20 };
+const SAMPLE = { stu: U.stu, plan: U.plan, race: U.race, rep: U.rep };
+A.forEach(a => {
+  if (!a.sm) return;
+  const s = a.sm;
+  s.raw = s.x !== undefined ? (s.n ? s.x / s.n * 100 : 0) : s.v;
+  if (!s.n) { a.none = 'Пока нет данных'; a.val = dir(a) === -1 ? a.start : 0; return; }
+  const m = (s.n * s.raw + K[s.of] * s.p) / (s.n + K[s.of]);
+  a.val = a.fmt === 'dur' ? Math.round(m) : Math.round(m * 10) / 10;
+});
+// in the states the levels are dated month by month back from November 2026
+if (DEMO === 'empty' || DEMO === 'few') A.forEach(a => { const t = tierOf(a); a.d = Array.from({ length: t }, (_, i) => new Date(Date.UTC(2026, 10 - (t - 1 - i), 1)).toISOString().slice(0, 10)); });
 const ACH = {}; S.forEach(s => s.ach.forEach(([name, lv, value, date, id, mini]) => { ACH[id] = { id, sid: s.id, name, lv, value, date, mini }; }));
 const stById = Object.fromEntries(S.map(s => [s.id, s]));
 
@@ -831,7 +848,7 @@ function remaining(a) {
 function status(a) {
   const t = tierOf(a);
   if (locked(a)) return 'Условие скрыто';
-  if (a.short) return `Мало данных: ${a.short}`;
+  if (VIEW === 'friend') return t ? `Получено ${fmtDate(a.d[t - 1])}` : '';
   if (a.none) return a.none;
   if (t === a.th.length) return a.kind === 'tier' ? 'Максимальный уровень' : `Получено ${fmtDate(a.d[t - 1])}`;
   const next = a.th[t];
@@ -851,7 +868,10 @@ const state = { show: DEMO === 'empty' || DEMO === 'few' ? [] : ['m1', 'm2', 'k1
 const earned = A.filter(a => tierOf(a) > 0);
 const notEarned = A.filter(a => tierOf(a) === 0 && a.kind !== 'secret');
 const secrets = A.filter(locked);
-const totalPts = A.reduce((s, a) => s + points(a), 0);
+// the rank: the six strongest achievements plus every opened secret
+const byLevel = (x, y) => points(y) - points(x) || catIdx(x.cat) - catIdx(y.cat);
+const counted = A.filter(a => a.kind === 'tier').sort(byLevel).slice(0, RANK_BEST);
+const totalPts = counted.reduce((s, a) => s + points(a), 0) + A.filter(a => a.kind === 'secret').reduce((s, a) => s + points(a), 0);
 const rankIdx = C_RANKS.reduce((k, r, i) => (totalPts >= r.from ? i : k), 0);
 const SHOW_SLOTS = 6;
 
@@ -863,11 +883,11 @@ function renderRank() {
   const goal = nx ? nx.from : totalPts;
   const steps = R.map((x, i) => {
     const st = i < rankIdx ? 'got' : i === rankIdx ? 'cur' : 'lock';
-    return `<div class="step ${st}" role="listitem" aria-label="${esc(x.name)}, от ${fmtInt(x.from)} ${plural(x.from, U.pt)}">${emblem(x)}<span class="sn">${esc(x.name)}</span><span class="sp">${st === 'lock' ? svg('secret', 13) : ''}от ${fmtInt(x.from)}</span>${st === 'cur' ? '<span class="you">Вы здесь</span>' : ''}</div>`;
+    return `<div class="step ${st}" role="listitem" aria-label="${esc(x.name)}, от ${fmtInt(x.from)} ${plural(x.from, U.pt)}">${emblem(x)}<span class="sn">${esc(x.name)}</span><span class="sp">${st === 'lock' ? svg('secret', 13) : ''}от ${fmtInt(x.from)}</span>${st === 'cur' && VIEW === 'own' ? '<span class="you">Вы здесь</span>' : ''}</div>`;
   }).join('');
   $('#rank').innerHTML = `<div class="rank-top">${emblem(r)}
       <div><p class="rlab">Тренерское звание</p><p class="rname">${esc(r.name)}</p>
-        <div class="rbar pgc"><span class="track"><span style="width:${(totalPts / goal * 100).toFixed(1)}%"></span></span><span class="row"><span><b>${fmtInt(totalPts)}</b>${nx ? ` / ${fmtInt(nx.from)}` : ''}</span></span></div>
+        <div class="rbar pgc"><span class="track"><span style="width:${(totalPts / goal * 100).toFixed(1)}%"></span></span><span class="row"><span><b>${fmtInt(totalPts)}</b>${nx ? ` / ${fmtInt(nx.from)}` : ''}</span></span></div><p class="rnote">В звании ${RANK_BEST} лучших достижений и легендарные</p>
       </div>
     </div>
     <div class="road-wrap" id="road-wrap"><div class="road" role="list" aria-label="Тренерские звания"><span class="rail"></span><span class="rail-fill" style="width:calc((100% - 100% / ${R.length}) * ${fill.toFixed(4)})"></span>${steps}</div></div>`;
@@ -906,43 +926,64 @@ function renderStudents() {
 function renderShowcase() {
   $('#sh-chip').textContent = `${state.show.length} из ${SHOW_SLOTS}`;
   const cells = state.show.map(id => sbib(ACH[id], 'button'));
-  $('#sh-h').parentNode.querySelector('.edit').hidden = !S.length;
+  $('#sh-h').parentNode.querySelector('.edit').hidden = !S.length || VIEW !== 'own';
+  $('#sh-chip').hidden = VIEW !== 'own';
   if (!S.length) { $('#showcase').innerHTML = '<div class="empty" style="grid-column:1/-1">Витрина заполнится, когда ученики получат достижения и разрешат их показывать.</div>'; return; }
-  for (let i = state.show.length; i < SHOW_SLOTS; i++) cells.push(`<button class="slot" type="button" data-edit="1">Свободное место<small>Добавить достижение ученика</small></button>`);
+  if (VIEW === 'own') for (let i = state.show.length; i < SHOW_SLOTS; i++) cells.push(`<button class="slot" type="button" data-edit="1">Свободное место<small>Добавить достижение ученика</small></button>`);
   $('#showcase').innerHTML = cells.join('');
 }
-// opened secrets in their own «Легендарные» row; the grid: levels from the highest down; the closed secrets close it as one strip
+// opened secrets in their own «Легендарные» row; then the six that make the rank and the rest, each from the highest level down;
+// the closed secrets close it as one strip. Another person sees the strengths only: up to five, from Gold up
 function renderAll() {
   const legends = earned.filter(a => a.kind === 'secret');
-  $('#legends').innerHTML = legends.length ? `<div class="ph"><h3>Легендарные</h3><span class="chip">${legends.length}</span></div><div class="bibs c5">${legends.map(a => bib(a)).join('')}</div>` : '';
-  const list = [...earned.filter(a => a.kind !== 'secret').sort((x, y) => levelPoints(y) - levelPoints(x) || catIdx(x.cat) - catIdx(y.cat)), ...notEarned];
+  const group = (title, chip, list) => !list.length ? '' : `<div class="cgrp"><div class="ph"><h3>${title}</h3><span class="chip">${chip}</span></div><div class="bibs c6">${list.map(a => bib(a)).join('')}</div></div>`;
+  if (VIEW === 'friend') {
+    $('#all-h').textContent = 'Сильные стороны';
+    const best = [...legends, ...earned.filter(a => a.kind === 'tier' && tierOf(a) >= 3).sort(byLevel)].slice(0, 5);
+    $('#legends').innerHTML = '';
+    $('#all').innerHTML = best.length ? `<div class="bibs c5">${best.map(a => bib(a)).join('')}</div>` : '<div class="empty">Пока нет достижений от Золота и выше</div>';
+    return;
+  }
+  $('#legends').innerHTML = group('Легендарные', legends.length, legends);
   const strip = !secrets.length ? '' : `<div class="sstrip" style="${look(SECRET)}"><span class="band">Секретные · ${secrets.length}</span>
     <div class="sbody"><p class="st"><b>${secrets.length} ${plural(secrets.length, ['секретное достижение', 'секретных достижения', 'секретных достижений'])}</b>Условия скрыты · каждое откроется легендарным, +${LEGEND.pts} очков</p>
     <div class="sbibs">${secrets.map(a => `<button class="sb" type="button" data-open="${a.id}" aria-label="Секретное достижение"><span class="mb" style="${look(SECRET)}" aria-hidden="true"><i></i><b>?</b></span></button>`).join('')}</div></div></div>`;
-  $('#all').innerHTML = list.map(a => bib(a)).join('') + strip;
+  const tiers = A.filter(a => a.kind === 'tier');
+  $('#all').innerHTML = (counted.some(a => points(a))
+    ? group('В звании', `${RANK_BEST} лучших`, counted) + group('Остальные', 'на звание не влияют', tiers.filter(a => !counted.includes(a)).sort(byLevel))
+    : `<div class="bibs c5">${tiers.sort(byLevel).map(a => bib(a)).join('')}</div>`) + strip;
 }
 
 /* ---------- dialogs ---------- */
 const dlg = $('#dlg');
 const closeBtn = `<button class="x" type="button" id="d-close" aria-label="Закрыть"><svg viewBox="0 0 24 24" style="width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:1.5;stroke-linecap:round" aria-hidden="true">${ICON.close}</svg></button>`;
 function show(html) { $('#dlg-body').innerHTML = html; if (!dlg.open) dlg.showModal(); }
+// how the figure came about: the coach's own data, the S10 average and the value with both
+function sampleNote(a) {
+  const s = a.sm;
+  if (!s) return '';
+  if (!s.n) return '<p class="dnote"><b>Пока нет данных.</b> Значение появится с первым результатом.</p>';
+  const own = s.x !== undefined ? `${s.x} из ${s.n} ${SAMPLE[s.of][2]} (${fmtN(a, Math.round(s.raw * 10) / 10)})` : `${fmtN(a, s.v)}, ${SAMPLE[s.of][2]}: ${s.n}`;
+  return `<p class="dnote">Ваши данные: ${own}. В среднем на S10: ${fmtN(a, s.p)}. С поправкой на объём данных: <b>${fmtN(a, a.val)}</b>.</p>`;
+}
+const rankNote = a => a.kind !== 'tier' ? '' : `<p class="dnote">${counted.includes(a) ? `Входит в ${RANK_BEST} лучших и считается в звании.` : `Не входит в ${RANK_BEST} лучших: на звание сейчас не влияет.`}</p>`;
 // a coach achievement with its eight levels
 function openAchievement(id) {
   const a = byId[id], t = tierOf(a), lock = locked(a);
   const ladder = lock ? '' : `<div class="ladder">${a.th.map((_, i) => {
     const lvi = levelAt(a, i);
     const where = `<small>у ${fmtPct(rarity(a, i))} тренеров</small>`;
-    const st = i < t ? `<span class="st ok">${fmtDate(a.d[i])}${where}</span>` : i === t && !a.short ? `<span class="st nx">${esc(remaining(a))}${where}</span>` : `<span class="st">—${where}</span>`;
+    const st = i < t ? `<span class="st ok">${fmtDate(a.d[i])}${where}</span>` : i === t && !a.none && VIEW === 'own' ? `<span class="st nx">${esc(remaining(a))}${where}</span>` : `<span class="st">—${where}</span>`;
     const label = a.kind === 'tier' ? thLabel(a, i) : a.got;
     return `<div class="lr"><span class="sw" style="--tc:${lvi.c}"></span><span class="tn">${levelName(a, i)}</span><span class="th">${esc(label)} · +${lvi.pts}</span>${st}</div>`;
   }).join('')}</div>`;
-  const pg = (!maxed(a) && !lock && !a.short) ? `<div class="dpg pgc"><span class="track"><span style="width:${(progress(a) * 100).toFixed(1)}%"></span></span><span class="row"><b>${Math.floor(progress(a) * 100)}%</b><span>${esc(status(a))}</span></span></div>` : '';
+  const pg = (VIEW === 'own' && !maxed(a) && !lock && !a.none) ? `<div class="dpg pgc"><span class="track"><span style="width:${(progress(a) * 100).toFixed(1)}%"></span></span><span class="row"><b>${Math.floor(progress(a) * 100)}%</b><span>${esc(status(a))}</span></span></div>` : '';
   show(`<div class="dl">${closeBtn}${bib(a, 'div', ' big')}<div>
       <p class="dcat">${esc(catOf(a.cat).name)}</p>
       <h2 id="dlg-t">${esc(lock ? 'Секретное достижение' : a.name)}</h2>
       <p class="dcond">${esc(lock ? 'Условие откроется вместе с достижением.' : a.cond)}</p>
       ${lock ? `<p class="dnote">Когда откроете, оно станет <b>легендарным</b> и даст +${LEGEND.pts} очков. Открыто у ${fmtPct(a.r)} тренеров S10.</p>` : `<p class="dnote">Считается по данным: ${esc(a.src)}</p>`}
-      ${a.short ? `<p class="dnote"><b>Мало данных: ${esc(a.short)}.</b> Уровень появится, когда данных станет достаточно: так один ученик не решает за всю работу тренера.</p>` : ''}${ladder}${pg}${t && a.ev ? `<p class="dev">Последний уровень: <b>${esc(a.ev)}</b></p>` : ''}
+      ${VIEW === 'own' ? sampleNote(a) + rankNote(a) : ''}${ladder}${pg}${t && a.ev ? `<p class="dev">Последний уровень: <b>${esc(a.ev)}</b></p>` : ''}
     </div></div>`);
 }
 // a student's achievements, as the coach sees them
@@ -1004,7 +1045,7 @@ document.addEventListener('click', e => {
 /* ---------- notifications ---------- */
 let bellSeen = false;
 function notes() {
-  if (DEMO === 'loading' || DEMO === 'error') return [];
+  if (DEMO === 'loading' || DEMO === 'error' || VIEW !== 'own') return [];
   const ev = A.flatMap(a => a.d.map((d, i) => ({ a, i, d }))).sort((x, y) => y.d.localeCompare(x.d)).slice(0, 2).map(e => {
     const lv = levelAt(e.a, e.i);
     return { key: `lv:${e.a.id}`, d: e.d, html: `${miniBib(e.a, e.i)}<span class="nt"><b>Новый уровень: «${esc(e.a.name)}»</b><small>${lv.name} · +${lv.pts} ${plural(lv.pts, U.pt)} · ${fmtDate(e.d)}</small></span>` };
@@ -1065,6 +1106,7 @@ if (DEMO === 'loading') renderLoading();
 else if (DEMO === 'error') renderError();
 else {
   $('#cm').textContent = `S10 · ${S.length} ${plural(S.length, U.stu)}`;
+  if (VIEW === 'friend') { $('#students').closest('section').hidden = true; $('.bar .ava').textContent = 'А3'; } // the students are the coach's own business; the bar is the viewer's
   renderRank(); renderStudents(); renderShowcase(); renderAll();
 }
 
@@ -1074,7 +1116,7 @@ else {
   <span>Прототип</span>
   <a href="index.html">Атлет</a>
   <a href="coach.html" class="on" aria-current="page">Тренер</a>
-  <label class="demo-st"><span class="vh">Состояние</span><select id="demo-st"><option value="">Обычное</option><option value="empty">Нет учеников</option><option value="few">Мало данных</option><option value="loading">Загрузка</option><option value="error">Ошибка</option></select></label>
+  <label class="demo-st"><span class="vh">Состояние</span><select id="demo-st"><option value="">Обычное</option><option value="few">Новый тренер</option><option value="empty">Нет учеников</option><option value="public">Глазами атлета</option><option value="loading">Загрузка</option><option value="error">Ошибка</option></select></label>
 </nav>
 <script>
 (() => { const sel = document.getElementById('demo-st'); sel.value = location.hash.slice(1); if (sel.selectedIndex < 0) sel.value = ''; sel.addEventListener('change', () => { location.hash = sel.value; }); })();
