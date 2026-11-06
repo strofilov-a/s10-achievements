@@ -1,0 +1,32 @@
+[
+  {
+    "athlete_id": "an",
+    "achievement": "Из трёх",
+    "level_name": "Легендарное",
+    "date": "2026-10-12"
+  },
+  {
+    "athlete_id": "an",
+    "achievement": "Марафон",
+    "level_name": "Мастер",
+    "date": "2025-10-12"
+  },
+  {
+    "athlete_id": "ak",
+    "achievement": "Пятёрка",
+    "level_name": "Мастер",
+    "date": "2026-03-08"
+  },
+  {
+    "athlete_id": "ak",
+    "achievement": "Десятка",
+    "level_name": "Титан",
+    "date": "2025-10-12"
+  },
+  {
+    "athlete_id": "om",
+    "achievement": "Длинная дистанция",
+    "level_name": "Платина",
+    "date": "2026-04-26"
+  }
+]

@@ -1,0 +1,42 @@
+[
+  {
+    "type": "consent_request",
+    "ref": "ask",
+    "date": null,
+    "title": "Тренер просит показывать ваши достижения",
+    "text": "В его профиле · сегодня",
+    "unread": true
+  },
+  {
+    "type": "new_level",
+    "ref": "intervals",
+    "date": "2026-11-04",
+    "title": "Новый уровень: «Интервальщик»",
+    "text": "Платина · +100 очков · 04.11.2026",
+    "unread": true
+  },
+  {
+    "type": "new_level",
+    "ref": "rank",
+    "date": "2026-11-02",
+    "title": "Новый уровень: «Топ рейтинга»",
+    "text": "Золото · +50 очков · 02.11.2026",
+    "unread": false
+  },
+  {
+    "type": "new_level",
+    "ref": "weeks_streak",
+    "date": "2026-10-25",
+    "title": "Новый уровень: «Без пропусков»",
+    "text": "Платина · +100 очков · 25.10.2026",
+    "unread": false
+  },
+  {
+    "type": "new_rank",
+    "ref": "rank",
+    "date": "2025-09-14",
+    "title": "Новое звание: Платина",
+    "text": "от 3 500 очков · 14.09.2025",
+    "unread": false
+  }
+]
