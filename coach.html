@@ -206,6 +206,8 @@ button.bib:hover { transform: translateY(-2px); border-color: var(--control); }
 .bib.big .band { height: 30px; line-height: 30px; font-size: 13px; }
 .bib.big .h.a, .bib.big .h.b { top: 12px; }
 .bib.big .val { font-size: 16px; line-height: 22px; padding-bottom: 26px; }
+.bib .mult { position: absolute; top: 34px; right: 12px; padding: 4px 9px; border-radius: 999px; background: var(--bc); color: var(--bci); font: 800 16px/1 var(--bib); font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.bib.big .mult { top: 44px; right: 14px; font-size: 20px; padding: 5px 11px; }
 
 /* dialog */
 dialog { border: 0; border-radius: 10px; padding: 0; width: calc(100% - 32px); max-width: 780px; box-shadow: 0 20px 50px var(--shadow); color: var(--text); background: var(--surface); }
@@ -632,10 +634,10 @@ function bib(a, tag = 'button', extra = '') {
   const fill = lock ? 0 : progress(a) * 100; // a full track at the top level, an empty one on a closed secret
   const bar = VIEW === 'friend' ? '' : `<span class="track"><span style="width:${fill.toFixed(1)}%"></span></span>`;
   const top = a.kind === 'tier' && t >= TIERS.length - 1 ? ' champ' : a.kind === 'secret' && t ? ' legend' : '';
-  const attrs = tag === 'button' ? ` type="button" data-open="${a.id}" aria-label="${esc(name)}: ${esc(lv.name)}. ${esc(status(a))}"` : '';
+  const attrs = tag === 'button' ? ` type="button" data-open="${a.id}" aria-label="${esc(name)}${t && a.count ? `, ${a.count}×` : ''}: ${esc(lv.name)}. ${esc(status(a))}"` : '';
   return `<${tag} class="bib${t || lock ? '' : ' off'}${lock ? ' lock' : ''}${top}${extra}"${attrs} style="${look(lv)}">
     <span class="band">${esc(lv.name)}</span><span class="h a"></span><span class="h b"></span><span class="h c"></span><span class="h d"></span>
-    <span class="ttl"${fit(name, extra)}>${esc(name)}</span><span class="val">${esc(value)}</span>
+    ${t && a.count ? `<span class="mult">${a.count}×</span>` : ''}<span class="ttl"${fit(name, extra)}>${esc(name)}</span><span class="val">${esc(value)}</span>
     <span class="pg">${bar}<span>${esc(status(a))}</span></span>
   </${tag}>`;
 }
@@ -774,7 +776,9 @@ const A = [
   { id: 'goal', cat: 'results', kind: 'tier', name: 'Цель команды', cond: 'Доля целевых стартов, где ученик пробежал на целевое время или быстрее', th: [20, 30, 40, 50, 60, 70, 80, 90], lab: pctLab([20, 30, 40, 50, 60, 70, 80, 90]), bu: '', fmt: 'pct', val: 58, d: ['2025-03-16', '2025-04-27', '2025-10-12', '2026-04-26'], sm: { of: 'race', x: 7, n: 12, p: 45 }, r: 60, src: 'Мастер-планы и протоколы стартов' },
   { id: 'precise', cat: 'method', kind: 'tier', name: 'Точная цель', cond: 'Доля целевых стартов, где результат не дальше 2% от целевого времени, быстрее или медленнее', th: [10, 20, 30, 40, 50, 60, 70, 80], lab: pctLab([10, 20, 30, 40, 50, 60, 70, 80]), bu: '', fmt: 'pct', val: 46, d: ['2025-04-27', '2025-10-12', '2026-04-26', '2026-10-12'], ev: 'Атлет 1, марафон: цель 3:00:00, результат 2:58:41', sm: { of: 'race', x: 6, n: 12, p: 30 }, r: 55, src: 'Мастер-планы и протоколы стартов' }, // the pair of «Цель команды»: an easy goal stops paying
   { id: 'grade', cat: 'results', kind: 'tier', name: 'Уровень учеников', cond: 'Лучший результат ученика с поправкой на возраст и пол, в процентах от мирового рекорда для его возраста', th: [50, 55, 60, 65, 70, 75, 80, 85], lab: pctLab([50, 55, 60, 65, 70, 75, 80, 85]), bu: '', fmt: 'pct', val: 71.4, d: ['2024-07-21', '2024-10-13', '2025-04-27', '2025-10-12', '2026-10-12'], ev: 'Атлет 1, марафон 2:58:41 в 44 года', r: 65, src: 'Протоколы стартов, возраст и пол учеников' },
-  { id: 'sub3', cat: 'secret', kind: 'secret', name: 'Из трёх в команде', cond: 'Ученик пробежал марафон быстрее 3:00:00', th: [1], lab: ['2:59'], got: 'ученик быстрее 3:00', val: 1, d: ['2026-10-12'], ev: 'Атлет 1, 2:58:41, 12.10.2026', r: 6, src: 'Протоколы стартов' },
+  // who: every student who did it while with this coach, for good; the counter on the card is their number, the points stay +500 once
+  { id: 'sub3', cat: 'secret', kind: 'secret', name: 'Саб 3', cond: 'Ученик пробежал марафон быстрее 3:00:00. Значок на плашке — сколько учеников сделали это у вас за всё время. Если ученик уйдёт, значок останется', th: [1], lab: ['2:59'], got: 'марафон быстрее 3:00', val: 1, d: ['2024-10-13'], ev: 'Атлет 1, 2:58:41, 12.10.2026', r: 6, src: 'Протоколы стартов',
+    who: [{ name: 'Атлет 8', time: '2:59:12', date: '2024-10-13', left: true }, { name: 'Атлет 7', time: '2:56:30', date: '2025-04-27', left: true }, { name: 'Атлет 1', time: '2:58:41', date: '2026-10-12' }] },
   { id: 'bq', cat: 'secret', kind: 'secret', name: 'Бостон', cond: 'Ученик пробежал марафон быстрее квалификационного норматива Бостона для своего возраста и пола', th: [1], lab: ['BQ'], got: 'квалификация ученика', val: 0, d: [], r: 4, src: 'Протоколы стартов, возраст и пол учеников' },
   { id: 'podium', cat: 'secret', kind: 'secret', name: 'Подиум', cond: 'Ученик попал в тройку челленджа S10', th: [1], lab: ['1–3'], got: 'ученик в тройке', val: 0, d: [], r: 9, src: 'Челленджи и протоколы' },
   { id: 'tour', cat: 'secret', kind: 'secret', name: 'Король турнира', cond: 'Ученик выиграл сезон турнира S10', th: [1], lab: ['№ 1'], got: 'ученик № 1 сезона', val: 0, d: [], r: 1, src: 'Турнир S10' },
@@ -829,6 +833,7 @@ A.forEach(a => {
 });
 // in the states the levels are dated month by month back from November 2026
 if (DEMO === 'empty' || DEMO === 'few') A.forEach(a => { const t = tierOf(a); a.d = Array.from({ length: t }, (_, i) => new Date(Date.UTC(2026, 10 - (t - 1 - i), 1)).toISOString().slice(0, 10)); });
+A.forEach(a => { if (a.who) a.count = tierOf(a) ? a.who.length : 0; });
 const ACH = {}; S.forEach(s => s.ach.forEach(([name, lv, value, date, id, mini]) => { ACH[id] = { id, sid: s.id, name, lv, value, date, mini }; }));
 const stById = Object.fromEntries(S.map(s => [s.id, s]));
 
@@ -966,6 +971,11 @@ function sampleNote(a) {
   const own = s.x !== undefined ? `${s.x} из ${s.n} ${SAMPLE[s.of][2]} (${fmtN(a, Math.round(s.raw * 10) / 10)})` : `${fmtN(a, s.v)}, ${SAMPLE[s.of][2]}: ${s.n}`;
   return `<p class="dnote">Ваши данные: ${own}. В среднем на S10: ${fmtN(a, s.p)}. С поправкой на объём данных: <b>${fmtN(a, a.val)}</b>.</p>`;
 }
+// everyone behind a counter, newest first; a student who left stays on the list
+function whoList(a) {
+  if (VIEW !== 'own') return `<p class="dnote"><b>${a.count} ${plural(a.count, U.stu)}</b> за всё время</p>`;
+  return `<h3 class="sdt">Выбежали из 3 часов · ${a.count}</h3><div class="ladder">${[...a.who].sort((x, y) => y.date.localeCompare(x.date)).map(w => `<div class="lr"><span class="sw" style="--tc:var(--t-leg)"></span><span class="tn">${esc(w.name)}</span><span class="th">${w.time}</span><span class="st ok">${fmtDate(w.date)}${w.left ? '<small>больше не занимается</small>' : ''}</span></div>`).join('')}</div>`;
+}
 const rankNote = a => a.kind !== 'tier' ? '' : `<p class="dnote">${counted.includes(a) ? `Входит в ${RANK_BEST} лучших и считается в звании.` : `Не входит в ${RANK_BEST} лучших: на звание сейчас не влияет.`}</p>`;
 // a coach achievement with its eight levels
 function openAchievement(id) {
@@ -983,7 +993,7 @@ function openAchievement(id) {
       <h2 id="dlg-t">${esc(lock ? 'Секретное достижение' : a.name)}</h2>
       <p class="dcond">${esc(lock ? 'Условие откроется вместе с достижением.' : a.cond)}</p>
       ${lock ? `<p class="dnote">Когда откроете, оно станет <b>легендарным</b> и даст +${LEGEND.pts} очков. Открыто у ${fmtPct(a.r)} тренеров S10.</p>` : `<p class="dnote">Считается по данным: ${esc(a.src)}</p>`}
-      ${VIEW === 'own' ? sampleNote(a) + rankNote(a) : ''}${ladder}${pg}${t && a.ev ? `<p class="dev">Последний уровень: <b>${esc(a.ev)}</b></p>` : ''}
+      ${VIEW === 'own' ? sampleNote(a) + rankNote(a) : ''}${ladder}${t && a.who ? whoList(a) : ''}${pg}${t && a.ev && !a.who ? `<p class="dev">Последний уровень: <b>${esc(a.ev)}</b></p>` : ''}
     </div></div>`);
 }
 // a student's achievements, as the coach sees them
@@ -1052,7 +1062,9 @@ function notes() {
   });
   const got = Object.values(ACH).sort((x, y) => y.date.localeCompare(x.date)).slice(0, 2).map(x => ({ key: `ach:${x.id}`, d: x.date,
     html: `<span class="mb" style="${look(LV[x.lv])}" aria-hidden="true"><i></i><b>${esc(x.mini)}</b></span><span class="nt"><b>Новое у ученика: «${esc(x.name)}»</b><small>${esc(stById[x.sid].name)} · ${esc(x.lv)} · ${fmtDate(x.date)}</small></span>` }));
-  const n = [...ev, ...got].sort((x, y) => y.d.localeCompare(x.d));
+  const more = A.filter(a => a.count).map(a => { const w = [...a.who].sort((x, y) => y.date.localeCompare(x.date))[0];
+    return { key: `lv:${a.id}`, d: w.date, html: `<span class="mb" style="${look(LEGEND)}" aria-hidden="true"><i></i><b>${a.count}×</b></span><span class="nt"><b>«${esc(a.name)}»: теперь ${a.count}×</b><small>${esc(w.name)} · ${w.time} · ${fmtDate(w.date)}</small></span>` }; });
+  const n = [...ev.filter(e => !more.some(m => m.key === e.key)), ...got, ...more].sort((x, y) => y.d.localeCompare(x.d));
   n.forEach((x, k) => { x.fresh = k === 0; });
   S.filter(s => s.consent === 'pending').forEach(s => n.unshift({ key: `st:${s.id}`, html: `<span class="ava" aria-hidden="true">${esc(s.ini)}</span><span class="nt"><b>Ждём ответа: ${esc(s.name)}</b><small>Запрос на показ достижений отправлен</small></span>` }));
   return n;

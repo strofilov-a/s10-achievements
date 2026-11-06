@@ -206,6 +206,8 @@ button.bib:hover { transform: translateY(-2px); border-color: var(--control); }
 .bib.big .band { height: 30px; line-height: 30px; font-size: 13px; }
 .bib.big .h.a, .bib.big .h.b { top: 12px; }
 .bib.big .val { font-size: 16px; line-height: 22px; padding-bottom: 26px; }
+.bib .mult { position: absolute; top: 34px; right: 12px; padding: 4px 9px; border-radius: 999px; background: var(--bc); color: var(--bci); font: 800 16px/1 var(--bib); font-variant-numeric: tabular-nums; letter-spacing: .01em; }
+.bib.big .mult { top: 44px; right: 14px; font-size: 20px; padding: 5px 11px; }
 
 /* dialog */
 dialog { border: 0; border-radius: 10px; padding: 0; width: calc(100% - 32px); max-width: 780px; box-shadow: 0 20px 50px var(--shadow); color: var(--text); background: var(--surface); }
@@ -732,10 +734,10 @@ function bib(a, tag = 'button', extra = '') {
   const fill = lock ? 0 : progress(a) * 100; // a full track at the top level, an empty one on a closed secret
   const bar = VIEW === 'friend' ? '' : `<span class="track"><span style="width:${fill.toFixed(1)}%"></span></span>`;
   const top = a.kind === 'tier' && t >= TIERS.length - 1 ? ' champ' : a.kind === 'secret' && t ? ' legend' : '';
-  const attrs = tag === 'button' ? ` type="button" data-open="${a.id}" aria-label="${esc(name)}: ${esc(lv.name)}. ${esc(status(a))}"` : '';
+  const attrs = tag === 'button' ? ` type="button" data-open="${a.id}" aria-label="${esc(name)}${t && a.count ? `, ${a.count}×` : ''}: ${esc(lv.name)}. ${esc(status(a))}"` : '';
   return `<${tag} class="bib${t || lock ? '' : ' off'}${lock ? ' lock' : ''}${top}${extra}"${attrs} style="${look(lv)}">
     <span class="band">${esc(lv.name)}</span><span class="h a"></span><span class="h b"></span><span class="h c"></span><span class="h d"></span>
-    <span class="ttl"${fit(name, extra)}>${esc(name)}</span><span class="val">${esc(value)}</span>
+    ${t && a.count ? `<span class="mult">${a.count}×</span>` : ''}<span class="ttl"${fit(name, extra)}>${esc(name)}</span><span class="val">${esc(value)}</span>
     <span class="pg">${bar}<span>${esc(status(a))}</span></span>
   </${tag}>`;
 }
