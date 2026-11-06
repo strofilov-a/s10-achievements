@@ -427,11 +427,14 @@ dialog.narrow { max-width: 520px; }
 .ph .edit { margin-left: auto; color: var(--text); }
 /* students two to a row: name and the button on top, rank and the last achievement side by side, what is close at the foot */
 .slist { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 12px; }
-.srow { display: grid; grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "av name name btn" "rk rk last last" "near near near near"; gap: 10px 14px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-row); padding: 12px 14px; }
+.srow { display: grid; grid-template-columns: 40px minmax(0, 1fr) minmax(0, 1fr) auto; grid-template-areas: "av name name btn" "rk rk last last"; gap: 10px 14px; align-items: center; background: var(--surface); border: 1px solid var(--border); border-radius: var(--r-row); padding: 12px 14px; }
 .srow .sav { grid-area: av; } .srow .sn2 { grid-area: name; min-width: 0; } .srow .sopen { grid-area: btn; }
 .srow .srk { grid-area: rk; } .srow .slast { grid-area: last; }
-.srow .snear { grid-area: near; padding-top: 8px; border-top: 1px solid var(--track-soft); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-.srow .snear small { display: inline; }
+/* the last achievement: its level in the plate band, the date alone beside it */
+.srow .slast .mb.lv { width: 80px; height: 46px; }
+.srow .slast .mb.lv i { height: 17px; font: 500 10.5px/17px var(--font); font-style: normal; color: var(--bci); text-align: center; white-space: nowrap; overflow: hidden; padding: 0 3px; }
+.srow .slast .mb.lv b { font-size: 14px; }
+.srow .lvt { display: none; }
 .sav { width: 40px; height: 40px; font: 400 14px/40px var(--font); }
 .srow b { font-weight: 500; }
 .srow small, .snear small { display: block; font-size: 13px; line-height: 18px; color: var(--muted); }
@@ -470,18 +473,16 @@ dialog.narrow { max-width: 520px; }
 @media (max-width: 1040px) {
   .bibs.c6 { grid-template-columns: repeat(3, minmax(0, 1fr)); }
   .bibs.c5 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-  .srow { grid-template-columns: 40px minmax(0, 1fr) auto; grid-template-areas: "av name btn" "rk rk rk" "last last last" "near near near"; }
 }
 @media (max-width: 640px) {
   .bibs.c6, .bibs.c3 { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .slist { gap: 8px; }
-  .srow { grid-template-columns: 32px minmax(0, 1fr); grid-template-areas: "av name" "rk rk" "last last" "near near" "btn btn"; gap: 10px; padding: 10px; }
+  .srow { grid-template-columns: 32px minmax(0, 1fr); grid-template-areas: "av name" "rk rk" "last last" "btn btn"; gap: 10px; padding: 10px; }
   .srow .sav { width: 32px; height: 32px; font-size: 12px; line-height: 32px; }
   .srow .sopen { justify-self: stretch; padding: 0 8px; font-size: 13px; }
   .srow .srk .emb { width: 28px; height: 30px; }
   .srow .slast .mb { display: none; }
-  .srow .snear { white-space: normal; }
-  .srow .snear small { display: block; }
+  .srow .lvt { display: inline; } /* no plate on a phone, so the level goes back into the line */
   .slot { min-height: 96px; }
   .sd { padding: 24px 20px calc(24px + env(safe-area-inset-bottom, 0px)); }
 }
@@ -938,8 +939,7 @@ function renderStudents() {
       <span class="sav" aria-hidden="true">${esc(s.ini)}</span>
       <span class="sn2"><b>${esc(s.name)}</b><small>занимается ${s.months} ${plural(s.months, U.mon)}</small></span>
       <span class="srk">${emblem(rankOf(s))}<span><b>${esc(rankOf(s).name)}</b><small>${fmtInt(s.pts)} ${plural(s.pts, U.pt)}</small></span></span>
-      <span class="slast"><span class="mb" style="${look(LV[last.lv])}" aria-hidden="true"><i></i><b>${esc(last.mini)}</b></span><span><b>${esc(last.name)}</b><small>${esc(last.lv)} · ${fmtDate(last.date)}</small></span></span>
-      <span class="snear" title="${esc(s.near)}"><small>На подходе:</small> ${esc(s.near)}</span>
+      <span class="slast"><span class="mb lv" style="${look(LV[last.lv])}" aria-hidden="true"><i>${esc(last.lv)}</i><b>${esc(last.mini)}</b></span><span><b>${esc(last.name)}</b><small><span class="lvt">${esc(last.lv)} · </span>${fmtDate(last.date)}</small></span></span>
       <button class="btn btn-out sopen" type="button" data-student="${s.id}">Достижения</button>
     </div>`;
   }).join('');
