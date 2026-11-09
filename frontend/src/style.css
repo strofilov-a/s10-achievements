@@ -102,8 +102,7 @@ main {
 .road .rail-fill { background: var(--brand); }
 .step { display: flex; flex-direction: column; align-items: center; gap: 4px; position: relative; z-index: 1; text-align: center; min-width: 0; }
 .step .emb { width: 64px; height: 68px; }
-.step.cur .emb { transform: scale(1.15); }
-.step.cur::before { content: ""; position: absolute; top: -14px; left: 50%; width: 96px; height: 96px; margin-left: -48px; border-radius: 50%; /* centred on the emblem, wide enough for its side sparkles at 1.15 */ background: var(--surface); border: 2px solid var(--brand); z-index: -1; }
+.step.cur .emb { transform: scale(1.15); } /* the current rank: the larger emblem where the blue line ends, and «Вы здесь» */
 .step .sn { font-size: 13px; line-height: 18px; font-weight: 500; color: var(--text); white-space: nowrap; margin-top: 18px; }
 .step .sp { font-size: 12px; line-height: 16px; color: var(--muted); font-variant-numeric: tabular-nums; white-space: nowrap; }
 .step.lock .sn { color: var(--muted); font-weight: 400; }
@@ -370,20 +369,16 @@ dialog.narrow { max-width: 520px; }
   .rank-top .emb { width: 64px; height: 68px; }
 }
 @media (max-width: 720px) {
-  .road { min-width: 0; padding-block: 10px; } /* the current-rank circle overhangs the 36px emblem by 7px on both sides */
+  .road { min-width: 0; padding-block: 10px; } /* room for the current emblem, a little larger than the rest */
   .road .rail, .road .rail-fill { top: 26px; }
   .step .emb { width: 34px; height: 36px; }
-  .step.cur::before { top: -7px; width: 50px; height: 50px; margin-left: -25px; }
   .step .sn, .step .sp, .step .you { display: none; }
-  /* a phone gives each rank 31–45px: the emblems and the circle take their size from the road (container units), so the
-     circle always fits its own column and never covers a neighbour; the current emblem keeps its size, the circle marks it.
-     --e is substituted where it is used, so its cqw are the road's */
+  /* a phone gives each rank 31–45px: the emblems take their size from the road (container units), so even the larger
+     current one keeps clear of its neighbours. --e is substituted where it is used, so its cqw are the road's */
   @supports (width: 1cqw) {
     .road { container-type: inline-size; --e: min(9.2cqw, 34px); }
     .step .emb { width: var(--e); height: calc(var(--e) * 68 / 64); }
-    .step.cur .emb { transform: none; }
     .road .rail, .road .rail-fill { top: calc(10px + var(--e) * 34 / 64 - 2px); } /* through the emblems' centres */
-    .step.cur::before { top: 50%; left: 50%; width: calc(var(--e) * 1.32); height: calc(var(--e) * 1.32); margin: 0; transform: translate(-50%, -50%); }
   }
 }
 @media (max-width: 640px) {
