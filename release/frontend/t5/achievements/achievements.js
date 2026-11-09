@@ -1,4 +1,4 @@
-/* S10 achievements · release 2d3d9c123f: one file for the athlete's page, the coach's page and the two blocks in a profile.
+/* S10 achievements · release fa78632c75: one file for the athlete's page, the coach's page and the two blocks in a profile.
      /achievements/athlete[?id=ID], /achievements/coach[?id=ID] — achievements.html with <div id="s10-achievements"></div>
      a profile — <div data-s10-achievements="widget" data-id="ID"></div>, or "coach-widget" in a coach's profile
    Each is drawn in its own shadow root, so the site's styles and these never meet. The data come from
@@ -384,6 +384,16 @@ dialog.narrow { max-width: 520px; }
   .step .emb { width: 34px; height: 36px; }
   .step.cur::before { top: -7px; width: 50px; height: 50px; margin-left: -25px; }
   .step .sn, .step .sp, .step .you { display: none; }
+  /* a phone gives each rank 31–45px: the emblems and the circle take their size from the road (container units), so the
+     circle always fits its own column and never covers a neighbour; the current emblem keeps its size, the circle marks it.
+     --e is substituted where it is used, so its cqw are the road's */
+  @supports (width: 1cqw) {
+    .road { container-type: inline-size; --e: min(9.2cqw, 34px); }
+    .step .emb { width: var(--e); height: calc(var(--e) * 68 / 64); }
+    .step.cur .emb { transform: none; }
+    .road .rail, .road .rail-fill { top: calc(10px + var(--e) * 34 / 64 - 2px); } /* through the emblems' centres */
+    .step.cur::before { top: 50%; left: 50%; width: calc(var(--e) * 1.32); height: calc(var(--e) * 1.32); margin: 0; transform: translate(-50%, -50%); }
+  }
 }
 @media (max-width: 640px) {
   main { padding-block: 24px 56px; }
