@@ -1,8 +1,12 @@
 <?php
 // Settings. The defaults work as they are: nothing here has to be filled in.
-// The database connection and the session user live in S10Source.php.
+// The database connection and the session user come from the site itself (S10Source.php).
 
 return [
+    // the site's web root (the folder with _.php, p/, apiweb/); null = found by itself: the folder next to this
+    // library that holds apiweb/achievements.php. Set it only if cli/check.php says «site root not found».
+    'site_root' => null,
+
     // the site counts days in Moscow time
     'timezone' => 'Europe/Moscow',
 
