@@ -1,6 +1,6 @@
 /* S10 achievements: one file for the athlete's page, the coach's page and the two blocks in a profile.
      /achievements/athlete[?id=ID], /achievements/coach[?id=ID] — achievements.html with <div id="s10-achievements"></div>
-     a profile — <div data-s10-achievements="widget" data-id="ID"></div>, or "coach-widget" in a coach's profile
+     a profile — <div data-s10-achievements="widget" data-id="auto"></div> (id from /profile?ID), or "coach-widget" in a coach's profile
    Each is drawn in its own shadow root, so the site's styles and these never meet. The data come from
    /apiweb/achievements.php (contract/API.md) with the session cookie; the page counts nothing itself.
    Off s10.run the source runs on the contract's example answers and sends nothing; the release has none of that. */
@@ -2060,7 +2060,9 @@ return { load };
     mePromise = mePromise || whoAmI().catch(() => null);
     mePromise.then(me => hosts.forEach(host => {
       const view = host.dataset.s10Achievements || (/\/coach\b/.test(location.pathname) ? 'coach' : 'athlete');
-      draw(host, view, host.dataset.id || new URLSearchParams(location.search).get('id') || '', me);
+      // the profile is /profile?ID (the bare id as the query), the pages take ?id=; data-id="auto" or none = from the address
+      const fromUrl = new URLSearchParams(location.search).get('id') || (/^\?(\d+)$/.exec(location.search) || [])[1] || '';
+      draw(host, view, (host.dataset.id && host.dataset.id !== 'auto' ? host.dataset.id : '') || fromUrl, me);
     }));
   }
   let watching = false;

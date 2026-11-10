@@ -19,7 +19,8 @@ final class App
     /** the site: S10Source and config.php */
     public static function fromConfig(array $override = [])
     {
-        return new self(new S10Source(), $override);
+        $config = array_merge(require ACH_LIB . '/config.php', $override);
+        return new self(new S10Source(isset($config['site_root']) ? $config['site_root'] : null), $override);
     }
 
     public function __construct(Source $source, array $config = [])

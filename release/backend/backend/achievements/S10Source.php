@@ -2,23 +2,27 @@
 namespace S10Ach;
 
 /**
- * THE file to fill in: where each piece of data lives on S10. Everything else is ready.
+ * Where each piece of data lives on S10: filled in by us from the site's schema (export of 10.11.2026), nothing to edit.
  *
- * Rules (the shapes are in Source.php, next to this file):
- *  - required methods throw TODO until filled: delete the throw line and write the SQL;
- *  - optional methods return null = «S10 has no such data»; the achievements that need it are then not shown.
- *    Fill one later and its achievements appear after the next nightly run;
- *  - return [] (not null) when the data exists but this user has none;
- *  - dates 'YYYY-MM-DD', date-times 'YYYY-MM-DD HH:MM:SS', Moscow time, as the site keeps them.
- * Check your work on the test server: php cli/check.php --user=ID (prints what each method returned).
+ * The connection and the logged-in user come from the site's own files, so there is no password to copy:
+ *  - db(): the settings of the site's MysqliDb ($db from p/mysqli.php), opened as PDO in utf8mb4;
+ *  - currentUserId(): tokengetid() from p/jwt.php, the same apptoken cookie every /apiweb/*.php reads.
+ * The site root is found by itself (see root()); set 'site_root' in config.php only if it is not.
+ *
+ * Shapes are in Source.php. Optional methods returning null = «no such data on S10»: those achievements stay hidden.
+ * Check: php cli/check.php --user=ID (prints what each method returned, writes nothing).
  */
 final class S10Source implements Source
 {
-    private $pdo;
+    /** a coaching period ends after this many days with no planned day by that coach */
+    const GAP_DAYS = 62;
 
-    private static function todo($method)
+    private $pdo;
+    private $root;
+
+    public function __construct($siteRoot = null)
     {
-        return new \RuntimeException('S10Source::' . $method . '() is not filled in yet (achievements/S10Source.php)');
+        $this->root = $siteRoot;
     }
 
     // ---------- helpers ----------
@@ -37,218 +41,373 @@ final class S10Source implements Source
         return $st->fetchAll(\PDO::FETCH_COLUMN);
     }
 
+    private static function ids(array $list)
+    {
+        return array_values(array_unique(array_map('intval', $list)));
+    }
+
+    /**
+     * The site's web root: S10_SITE_ROOT (set by apiweb/achievements.php, which lives in <root>/apiweb), else
+     * config 'site_root', else the env S10_SITE, else the one folder next to this library holding apiweb/achievements.php.
+     */
+    public function root()
+    {
+        if ($this->root) {
+            return rtrim($this->root, '/');
+        }
+        if (defined('S10_SITE_ROOT')) {
+            return $this->root = S10_SITE_ROOT;
+        }
+        if (getenv('S10_SITE')) {
+            return $this->root = rtrim(getenv('S10_SITE'), '/');
+        }
+        $found = glob(dirname(__DIR__) . '/*/apiweb/achievements.php') ?: [];
+        if (count($found) === 1) {
+            return $this->root = dirname(dirname($found[0]));
+        }
+        throw new \RuntimeException("S10 site root not found: set 'site_root' in achievements/config.php");
+    }
+
     // ---------- site ----------
 
     public function db()
     {
         if ($this->pdo === null) {
-            // TODO: the site's PDO (the same database; our tables are ach_*), connection in utf8mb4. For example:
-            //   require_once '/var/www/s10/config/db.php'; $this->pdo = $pdo;
-            //   $this->pdo = new \PDO('mysql:host=localhost;dbname=s10;charset=utf8mb4', 'user', 'password');
-            throw self::todo(__FUNCTION__);
+            // the site's own MysqliDb when the site is already loaded in this process, else p/mysqli.php read alone
+            $m = isset($GLOBALS['db']) && is_a($GLOBALS['db'], 'MysqliDb') ? $GLOBALS['db'] : null;
+            if (!$m) {
+                $m = (static function ($file) {
+                    require $file;          // p/mysqli.php: $db = new MysqliDb([...]) (connects lazily)
+                    return isset($db) ? $db : null;
+                })($this->root() . '/p/mysqli.php');
+            }
+            if (!is_a($m, 'MysqliDb')) {
+                throw new \RuntimeException('S10 p/mysqli.php gave no MysqliDb $db');
+            }
+            $get = function ($name) use ($m) {
+                $p = new \ReflectionProperty($m, $name);
+                if (PHP_VERSION_ID < 80100) {
+                    $p->setAccessible(true);   // needed before 8.1, deprecated in 8.5
+                }
+                return $p->getValue($m);
+            };
+            $host = (string) $get('host');
+            $dsn = 'mysql:dbname=' . $get('db') . ';charset=utf8mb4;'
+                . ($host !== '' && $host[0] === '/' ? 'unix_socket=' . $host : 'host=' . $host . ($get('port') ? ';port=' . (int) $get('port') : ''));
+            $this->pdo = new \PDO($dsn, $get('username'), $get('password'), [
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+                \PDO::ATTR_EMULATE_PREPARES => false,
+            ]);
         }
         return $this->pdo;
     }
 
     public function currentUserId()
     {
-        // TODO: the logged-in user exactly as the other /apiweb/*.php files get him (the session cookie);
-        // /apiweb/student/self/info/ answers null for the same visitor. For example:
-        //   if (session_status() !== PHP_SESSION_ACTIVE) { session_start(); }
-        //   return isset($_SESSION['user_id']) ? (int) $_SESSION['user_id'] : null;
-        throw self::todo(__FUNCTION__);
+        if (!function_exists('tokengetid')) {
+            $jwt = (static function ($file) {
+                require_once $file;         // p/jwt.php: $jwt and tokenset()/tokengetid(), which read global $jwt
+                return isset($jwt) ? $jwt : null;
+            })($this->root() . '/p/jwt.php');
+            if ($jwt && !isset($GLOBALS['jwt'])) {
+                $GLOBALS['jwt'] = $jwt;
+            }
+        }
+        $id = function_exists('tokengetid') ? (int) \tokengetid() : 0;
+        return $id > 0 ? $id : null;
     }
 
     public function users(array $ids)
     {
-        // TODO: display names as the site shows them (firstName + lastName of /apiweb/student/self/info/).
-        //   $in = implode(',', array_fill(0, count($ids), '?'));
-        //   foreach ($this->rows("SELECT id, first_name, last_name FROM users WHERE id IN ($in)", array_values($ids)) as $r) {
-        //       $out[(int) $r['id']] = ['name' => trim($r['first_name'] . ' ' . $r['last_name'])];
-        //   }
+        $ids = self::ids($ids);
         if (!$ids) {
             return [];
         }
-        throw self::todo(__FUNCTION__);
+        $out = [];
+        $in = implode(',', array_fill(0, count($ids), '?'));
+        foreach ($this->rows("SELECT id, firstname, lastname FROM stravauser WHERE id IN ($in)", $ids) as $r) {
+            $out[(int) $r['id']] = ['name' => trim(trim((string) $r['firstname']) . ' ' . trim((string) $r['lastname']))];
+        }
+        return $out;
     }
 
     public function isCoach($userId)
     {
-        // TODO: the user is a coach (role 'trainer' in /apiweb/student/self/info/, listed on /trainerlist).
-        throw self::todo(__FUNCTION__);
+        return (bool) ($this->col('SELECT istrainer FROM stravauser WHERE id = ?', [(int) $userId])[0] ?? 0);
     }
 
     public function isSubscriber($viewerId, $ownerId)
     {
-        // TODO if S10 has subscriptions (followers); without them «Подписчики» means: only the athlete's coach.
-        return false;
+        // socialsubscribe: id1 follows id2 (typ one | dbl), apiapp/social_lib.php:4
+        return (bool) $this->col('SELECT 1 FROM socialsubscribe WHERE id1 = ? AND id2 = ? LIMIT 1', [(int) $viewerId, (int) $ownerId]);
     }
 
     public function athleteIds()
     {
-        // TODO: everybody with any runs, races or plan, e.g. SELECT DISTINCT user_id FROM <tracks>.
-        throw self::todo(__FUNCTION__);
+        return self::ids($this->col(
+            'SELECT stravauser FROM stravadata GROUP BY stravauser
+             UNION SELECT stravauser FROM taskbytrainer GROUP BY stravauser
+             UNION SELECT stravauser FROM planresults GROUP BY stravauser'
+        ));
     }
 
     public function coachIds()
     {
-        // TODO: every coach (the /trainerlist people).
-        throw self::todo(__FUNCTION__);
+        return self::ids($this->col('SELECT id FROM stravauser WHERE istrainer = 1'));
     }
 
     public function changedUserIds($since)
     {
-        // TODO: users whose data changed after unix time $since: new or edited tracks, diary days, planresults,
-        // reports, coach links, payments… e.g. SELECT DISTINCT user_id FROM <tracks> WHERE updated_at > FROM_UNIXTIME(?)
-        // UNION … Returning [] works too: then only the nightly run counts (once a day).
-        throw self::todo(__FUNCTION__);
+        // indexed columns only (stravadata.ts is an invisible index): stravats = when a run came in
+        $t = (int) $since;
+        return self::ids($this->col(
+            'SELECT stravauser FROM stravadata WHERE stravats > FROM_UNIXTIME(?)
+             UNION SELECT stravauser FROM taskbytrainer WHERE ts > FROM_UNIXTIME(?)
+             UNION SELECT stravauser FROM report WHERE ts > FROM_UNIXTIME(?)',
+            [$t, $t, $t]
+        ));
     }
 
     // ---------- athlete: required ----------
 
     public function runs($userId)
     {
-        // TODO: the tracks behind the diary (/student → days[].tracks), running only (type 'run'; no rides, hikes).
-        // Strava and Garmin copies of one run are fine: the engine merges them. Manual entries: 'track' => false.
-        //   foreach ($this->rows('SELECT id, source, start_local, km, moving_sec, has_gps, elev_gain FROM <tracks>
-        //                         WHERE user_id = ? AND type = ?', [$userId, 'run']) as $r) {
-        //       $out[] = ['id' => $r['id'], 'source' => $r['source'], 'start' => $r['start_local'], 'km' => (float) $r['km'],
-        //                 'sec' => (int) $r['moving_sec'], 'track' => (bool) $r['has_gps'],
-        //                 'elev' => $r['elev_gain'] === null ? null : (float) $r['elev_gain'], 'hr_easy' => null];
-        //   }
-        // 'elev' (gain, m) and 'hr_easy' (the whole run in HR zones 1–2): null when unknown.
-        throw self::todo(__FUNCTION__);
+        // stravadata holds runs only (Strava Run/Wheelchair, Garmin and Polar running types; the rest goes to activity2):
+        // distance in metres, moving_time in seconds, start_date local, elevation = gain in m. Ids: Strava numeric,
+        // Garmin «g…», Polar «p…», COROS «c…». Every run comes from a device or service, so all have a track.
+        $src = ['g' => 'garmin', 'p' => 'polar', 'c' => 'coros'];
+        $out = [];
+        foreach ($this->rows('SELECT id, start_date, distance, moving_time, elevation FROM stravadata WHERE stravauser = ?', [(int) $userId]) as $r) {
+            $id = (string) $r['id'];
+            $out[] = [
+                'id' => $id,
+                'source' => preg_match('/^\\d+$/', $id) ? 'strava' : ($src[strtolower($id[0] ?? '')] ?? 'other'),
+                'start' => (string) $r['start_date'],
+                'km' => round($r['distance'] / 1000, 3),
+                'sec' => (int) $r['moving_time'],
+                'track' => true,
+                'elev' => $r['elevation'] === null ? null : (float) $r['elevation'],
+                'hr_easy' => null,
+            ];
+        }
+        return $out;
     }
 
     public function plan($userId)
     {
-        // TODO: the diary days with a plan (/student → days[]: date, type = typtrain, target = planned km).
-        // 'done' => null lets the engine decide (runs that day ≥ 80% of the planned km); give true/false if the site
-        // marks a day done itself — needed for strength days, which have no km.
-        //   SELECT d AS date, typtrain AS type, prekm AS km FROM <tasks> WHERE user_id = ? AND (typtrain > 0 OR prekm > 0)
-        throw self::todo(__FUNCTION__);
+        // taskbytrainer: one row per (athlete, day); prekm is text («10», «10.5», «»)
+        $out = [];
+        foreach ($this->rows('SELECT d, typtrain, prekm FROM taskbytrainer WHERE stravauser = ?', [(int) $userId]) as $r) {
+            $km = (float) str_replace(',', '.', (string) $r['prekm']);
+            $type = (int) $r['typtrain'];
+            if ($type > 0 || $km > 0) {
+                $out[] = ['date' => (string) $r['d'], 'type' => $type, 'km' => $km, 'done' => null];
+            }
+        }
+        return $out;
     }
 
     public function races($userId)
     {
-        // TODO: planresults (/apiweb/planresults.php?action=list): d → date, distance → km, realhms → sec (null when
-        // not run yet), prehms → goal, location, 'main' => true for the target race of a master plan
-        // (studentMainStart / main6 = 1).
-        throw self::todo(__FUNCTION__);
+        // planresults typ 'manu' = races (entered or built from the race day's task and report); 'auto' = best efforts
+        // found in runs, not races. off = 1 hidden by the athlete. distance 1/5/10/21/42, realhms/prehms seconds.
+        // The target race is the day with main6 = 1 in the plan.
+        $out = [];
+        foreach ($this->rows(
+            "SELECT p.i, p.d, p.distance, p.realhms, p.prehms, p.location, t.main6
+             FROM planresults p LEFT JOIN taskbytrainer t ON t.stravauser = p.stravauser AND t.d = p.d
+             WHERE p.stravauser = ? AND p.typ = 'manu' AND p.off = 0",
+            [(int) $userId]
+        ) as $r) {
+            $out[] = [
+                'id' => (int) $r['i'],
+                'date' => (string) $r['d'],
+                'km' => (float) $r['distance'],
+                'sec' => (int) $r['realhms'] > 0 ? (int) $r['realhms'] : null,
+                'goal' => (int) $r['prehms'] > 0 ? (int) $r['prehms'] : null,
+                'location' => (string) $r['location'],
+                'main' => (int) $r['main6'] === 1,
+            ];
+        }
+        return $out;
+    }
+
+    /**
+     * S10 keeps only the current coach (stravauser.curtrainer), no history of links. The history is rebuilt from the
+     * plan: taskbytrainer.trainer is the athlete's coach at the time each day was written (apiweb/task.php:39), so the
+     * days a coach planned for an athlete are their time together. A gap of more than GAP_DAYS ends a period; the last
+     * period of the current link stays open (to = null). A current link with no planned day yet starts when the coach
+     * accepted the request (reqtrainer.ansdt). Payments are not required: coaches are often paid outside S10.
+     * Rows: [other id, day], ordered by other id, then day.
+     */
+    private function periods(array $rows, array $current, $key)
+    {
+        $out = [];
+        $by = [];
+        foreach ($rows as $r) {
+            $by[(int) $r['other']][] = (string) $r['d'];
+        }
+        $today = date('Y-m-d');
+        foreach ($by as $other => $days) {
+            $from = $prev = $days[0];
+            foreach (array_slice($days, 1) as $d) {
+                if ((strtotime($d) - strtotime($prev)) / 86400 > self::GAP_DAYS) {
+                    $out[] = [$key => $other, 'from' => $from, 'to' => $prev];
+                    $from = $d;
+                }
+                $prev = $d;
+            }
+            $open = array_key_exists($other, $current) && (strtotime($today) - strtotime($prev)) / 86400 <= self::GAP_DAYS;
+            $out[] = [$key => $other, 'from' => $from, 'to' => $open ? null : $prev];
+            unset($current[$other]);
+        }
+        foreach ($current as $other => $since) {
+            if ($since) {
+                $out[] = [$key => $other, 'from' => substr($since, 0, 10), 'to' => null];
+            }
+        }
+        return $out;
+    }
+
+    private function accepted($athleteId, $coachId)
+    {
+        return $this->col('SELECT MAX(ansdt) FROM reqtrainer WHERE stravauser = ? AND trainer = ? AND ansdt IS NOT NULL', [(int) $athleteId, (int) $coachId])[0] ?? null;
     }
 
     public function coaches($athleteId)
     {
-        // TODO: the athlete's paid periods with coaches: coach_id, from, to (null while he is still with him).
-        // A student counts only after payment (TZ). History matters: «С тренером», and the coach's achievements.
-        throw self::todo(__FUNCTION__);
+        $a = (int) $athleteId;
+        $current = [];
+        $c = (int) ($this->col('SELECT curtrainer FROM stravauser WHERE id = ?', [$a])[0] ?? 0);
+        if ($c > 0 && $c !== $a) {
+            $current[$c] = $this->accepted($a, $c);
+        }
+        $rows = $this->rows('SELECT trainer AS other, d FROM taskbytrainer WHERE stravauser = ? AND trainer <> ? AND trainer > 0 ORDER BY trainer, d', [$a, $a]);
+        return $this->periods($rows, $current, 'coach_id');
     }
 
     public function students($coachId)
     {
-        // TODO: the same periods seen from the coach: athlete_id, from, to|null. All of them, also those who left.
-        throw self::todo(__FUNCTION__);
+        $c = (int) $coachId;
+        $current = [];
+        foreach ($this->col('SELECT id FROM stravauser WHERE curtrainer = ? AND id <> ?', [$c, $c]) as $a) {
+            $current[(int) $a] = null;
+        }
+        $rows = $this->rows('SELECT stravauser AS other, d FROM taskbytrainer WHERE trainer = ? AND stravauser <> ? ORDER BY stravauser, d', [$c, $c]);
+        $planned = [];
+        foreach ($rows as $r) {
+            $planned[(int) $r['other']] = true;
+        }
+        foreach ($current as $a => $_) {
+            if (!isset($planned[$a])) {
+                $current[$a] = $this->accepted($a, $c);
+            }
+        }
+        return $this->periods($rows, $current, 'athlete_id');
     }
 
-    // ---------- athlete: optional (null = no such data on S10) ----------
+    // ---------- athlete: optional ----------
 
     public function splits($userId)
     {
-        // Optional: seconds of each full kilometre per track id. «Быстрый километр», «Ровный темп».
-        return null;
+        return null;    // splits live in stravastreams per track; not read yet
     }
 
     public function masterPlans($userId)
     {
-        // Optional: master plans [['from' => …, 'to' => race day], …] (studentPlans<ID> versions in userparam).
-        // «Цикл до конца», the coach's «До конца».
-        return null;
+        // planrun: a master plan applied to the athlete (plan_set.php), startdate … stopdate (race week)
+        $out = [];
+        foreach ($this->rows('SELECT startdate, stopdate FROM planrun WHERE stravauser = ?', [(int) $userId]) as $r) {
+            if ($r['startdate'] && $r['stopdate']) {
+                $out[] = ['from' => (string) $r['startdate'], 'to' => (string) $r['stopdate']];
+            }
+        }
+        return $out;
     }
 
     public function reports($userId)
     {
-        // Optional: dates of the workout reports the athlete sent. «Отчёт о тренировке».
-        return null;
+        return array_map('strval', $this->col('SELECT d FROM report WHERE stravauser = ?', [(int) $userId]));
     }
 
     public function ownWeeks($userId)
     {
-        // Optional: Mondays of the weeks built by the athlete in «Создать неделю» (calc3 writes, task.php update).
-        return null;
+        return null;    // calc3 writes through task.php like a coach: not told apart in taskbytrainer
     }
 
     public function intervals($userId)
     {
-        // Optional: interval sessions with the planned pace and each work lap's pace. «Снайпер».
         return null;
     }
 
     public function challenges($userId)
     {
-        // Optional: S10 challenges (challenges.s10.run): date, name, place, neg_split. «Челленджи», «Пьедестал»,
-        // «Негативный сплит» (neg_split null when the protocol has no splits).
-        return null;
+        return null;    // challenges.s10.run, another database
     }
 
     public function rating($userId)
     {
-        // Optional: the overall S10 rating (challenges.s10.run/rating), the place in each season. «Топ рейтинга».
         return null;
     }
 
     public function tournament($userId)
     {
-        // Optional: S10 tournament seasons and places. «Король турнира».
         return null;
     }
 
     public function posts($userId)
     {
-        // Optional: dates of the user's posts in the feed. «Автор».
-        return null;
+        return array_map('strval', $this->col('SELECT d FROM blog WHERE stravauser = ?', [(int) $userId]));
     }
 
     public function likes($userId)
     {
-        // Optional: dates of the likes the user's posts received. «Нравится».
-        return null;
+        // «Нравится» on S10 is put on workouts (socialuserlike.activity0 = md5 id of the run or other activity)
+        $u = (int) $userId;
+        return array_map('strval', $this->col(
+            'SELECT DATE(l.created) FROM socialuserlike l JOIN stravadata s ON s.id0 = l.activity0 WHERE s.stravauser = ? AND l.stravauser <> ?
+             UNION ALL
+             SELECT DATE(l.created) FROM socialuserlike l JOIN activity2 a ON a.id0 = l.activity0 WHERE a.stravauser = ? AND l.stravauser <> ?',
+            [$u, $u, $u, $u]
+        ));
     }
 
     public function comments($userId)
     {
-        // Optional: dates of the comments the user left. «Комментатор».
-        return null;
+        return array_map('strval', $this->col('SELECT DATE(dt) FROM socialcomment WHERE stravauser = ?', [(int) $userId]));
     }
 
     public function referrals($userId)
     {
-        // Optional: dates friends signed up by the user's link. «Привёл друга» (off in the catalog for now).
         return null;
     }
 
     public function cities($userId)
     {
-        // Optional: cities run in (needs geocoding). «Города» (off in the catalog for now).
         return null;
     }
 
     public function clubSince($userId)
     {
-        // Optional: 'YYYY-MM-DD' when the user joined an S10 club (profile), '' when he is in none.
-        return null;
+        return null;    // clubs live on challenges.s10.run; stravauser.clubid has no join date
     }
 
     public function person($userId)
     {
-        // Optional: ['birth' => 'YYYY-MM-DD'|null, 'sex' => 'm'|'f'|null] from the profile. «Бостон»,
-        // the coach's «Уровень учеников» (also needs data/age-grade.php).
-        return null;
+        $r = $this->rows('SELECT bday, sex FROM stravauser WHERE id = ?', [(int) $userId])[0] ?? null;
+        if (!$r) {
+            return ['birth' => null, 'sex' => null];
+        }
+        $sex = strtolower((string) $r['sex']);
+        $birth = (string) $r['bday'];
+        return [
+            'birth' => $birth !== '' && $birth !== '0000-00-00' && $birth > '1900-01-01' ? $birth : null,
+            'sex' => in_array($sex, ['m', 'f'], true) ? $sex : null,
+        ];
     }
 
     public function forecast($userId)
     {
-        // Optional: the S10 forecast in seconds [5 => …, 10 => …, 21 => …, 42 => …] (planresults t: paces per
-        // distance × distance). Only a hint under the records.
         return null;
     }
 
@@ -256,8 +415,6 @@ final class S10Source implements Source
 
     public function replies($coachId)
     {
-        // Optional: every report of the coach's students with the time of the coach's first answer of 20+ characters
-        // (null if none): [['report_at' => …, 'reply_at' => …|null], …]. «На связи».
         return null;
     }
 }

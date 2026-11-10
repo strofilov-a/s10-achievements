@@ -167,25 +167,21 @@ T::test('meta: the contract check itself sees an extra key and a changed type', 
     T::ok(count(shapeDiff($mock, ['a' => '5', 'items' => []])) >= 2, 'a string for a number, no items');
 });
 
-T::test('meta: S10Source implements every Source method; the required ones say TODO until filled', function () {
+T::test('meta: S10Source implements every Source method, filled in (no TODO), the site found by itself', function () {
     $r = new ReflectionClass(S10Ach\S10Source::class);
     T::ok($r->implementsInterface(S10Ach\Source::class));
     foreach ((new ReflectionClass(S10Ach\Source::class))->getMethods() as $m) {
         T::ok($r->hasMethod($m->getName()), $m->getName());
     }
-    $s = new S10Ach\S10Source();
-    foreach (['db', 'currentUserId', 'runs', 'plan', 'races', 'coaches', 'students', 'athleteIds', 'coachIds', 'changedUserIds', 'isCoach'] as $m) {
-        try {
-            $s->$m(1);
-            T::ok(false, "$m should say TODO");
-        } catch (RuntimeException $e) {
-            T::ok(strpos($e->getMessage(), 'not filled in yet') !== false, $e->getMessage());
-        }
+    $src = file_get_contents(ACH_LIB . '/S10Source.php');
+    T::ok(strpos($src, 'TODO') === false && strpos($src, 'not filled in yet') === false, 'no TODO left in S10Source.php');
+    T::ok(strpos($src, 'password') === false || strpos($src, "\$get('password')") !== false, 'no password written into the adapter');
+    // with no site around it says where to point it, not a PHP error
+    try {
+        (new S10Ach\S10Source('/nonexistent'))->db();
+        T::ok(false, 'db() without a site should throw');
+    } catch (Throwable $e) {
+        T::ok(true);
     }
-    foreach (['splits', 'masterPlans', 'reports', 'ownWeeks', 'intervals', 'challenges', 'rating', 'tournament', 'posts', 'likes', 'comments',
-        'referrals', 'cities', 'clubSince', 'person', 'forecast', 'replies'] as $m) {
-        T::eq(null, $s->$m(1), "$m is optional: null by default");
-    }
-    T::eq(false, $s->isSubscriber(1, 2));
-    T::eq([], $s->users([]));
+    T::eq([], (new S10Ach\S10Source('/nonexistent'))->users([]));
 });

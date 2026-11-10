@@ -17,39 +17,48 @@ this file are English.
   and `docs/TZ.pdf` (both go into the archives). The rules there are binding; how-to lives in the code and the briefs.
 - Retired: the HTML prototypes (Claude artifacts 4eCfzvZtCqvRx6wqi1iJQx athlete v44, 4tWXEi62YhBrZJ8C2vy7oW coach v16).
   Their catalog and states were moved into `catalog/` and `contract/mock/` (`tools/export-prototype.mjs`, one time).
-- Sister project with the same site conventions: «Моя неделя» (S10 Solo), `~/Projects/s10-week` — its `CLAUDE.md` has
+- Sister project with the same site conventions: «Моя неделя» (S10 Solo), `../s10-week` — its `CLAUDE.md` has
   the map of the site's existing API; the header and the S10 menu here are copied from its `solo.js`.
 
 ## Where it stands (10.11.2026)
 
-The owner has the two archives to send to the S10 developers: backend `s10-achievements-backend-943c40f.zip`,
-frontend `s10-achievements-frontend-70b3860.zip` (`sh tools/zip.sh <dir>` rebuilds them from `release/`).
+Nothing has been sent to the developers yet (the owner, 10.11.2026). Everything goes in ONE package with «Моя неделя»
+and the payment page: `sh ~/CLAUDE CODE/инструменты/собрать-пакет.sh` → `~/CLAUDE CODE/релизы/s10-deploy-<date>.zip`
+(its README is the developer's whole brief; `backend/README.md` rides along as `docs/achievements-backend.md`).
+`tools/zip.sh` (the two separate archives) still works but is not what we send.
 
-Waiting for, from the S10 backend developer:
-1. the level distribution after the history recount (`php cli/report.php`, a .md and a .csv);
-2. a link to the test server;
-3. answers: is the coach ↔ student history kept with dates and payments (every coach achievement depends on it); the
-   typtrain code of a strength workout (assumed 7, `backend/achievements/config.php` `strength_type`).
+`achievements/S10Source.php` is filled in by us from the site's schema (export of 10.11.2026,
+`~/CLAUDE CODE/сайт-s10.run/`): db() opens PDO with the settings of the site's own MysqliDb ($db from p/mysqli.php, read by
+reflection), currentUserId() is the site's tokengetid() (p/jwt.php); the site root is S10_SITE_ROOT (set by
+apiweb/achievements.php), config `site_root`, env S10_SITE, or the one folder beside the library holding
+apiweb/achievements.php. `cli/install.php` creates the ach_* tables through that connection. Tested on MySQL with the
+real schema in strict mode: `backend/tests/mysql/s10source_mysql.php` (44 checks: every method, install, check,
+recalc --history, worker, nightly, report). It needs the schema dump, which is NOT in this public repo.
 
-Then: tune the thresholds from the distribution (edit `catalog/*.json`, copy to `backend/achievements/catalog/` — a
-meta test fails when they differ), check the pages on the test server, adapt the code if their data differ from what
-the adapter assumes, rebuild, all tests, and a release with only what changed (a backend-only release is the usual case:
-the thresholds live in the server's catalog). The developer's filled `S10Source.php` must survive a release.
+Answered from the site's code (the questions we had for the developer):
+- coach ↔ student history: not stored (only `stravauser.curtrainer`). Periods are rebuilt from `taskbytrainer.trainer`
+  (the athlete's coach when each day was written, apiweb/task.php:39): a gap over 62 days closes a period, the current
+  link stays open; a current student with no planned day starts at `reqtrainer.ansdt`. Payments are not required
+  (coaches are often paid outside S10) — a deviation from the TZ's «only paid», told to the owner.
+- strength typtrain: almost surely 7 (codes 1–6 are known, the table has AUTO_INCREMENT=8, the site's AI prompt lists
+  «силовая», the live site shows seven workout colours); one `SELECT id, ru FROM typtrain` confirms it.
 
-Not verified: a real MySQL/MariaDB (the tests run on SQLite), a real PHP 7.4 (tests on PHP 8.5; a token scan blocks
-anything newer). No WMA age-grading table yet, so the coach's «Уровень учеников» is off; the Boston standards in
-`backend/achievements/data/boston.php` are marked «verify».
+Still waiting for, from the S10 backend developer: the level distribution (`php cli/report.php`, .md and .csv) and a
+link to the test server. Then: tune the thresholds (`catalog/*.json`, copy to `backend/achievements/catalog/` — a
+meta test fails when they differ), check the pages on the test server, rebuild, all tests, and a new package.
+
+Not verified: a real PHP 7.4 (tests on PHP 8.5; a token scan blocks anything newer). No WMA age-grading table yet, so
+the coach's «Уровень учеников» is off; the Boston standards in `backend/achievements/data/boston.php` are marked «verify».
 
 ## Who does what
 
-- Backend developer: run `sql/achievements.sql` (12 `ach_*` tables, no existing table changes), copy `apiweb/achievements.php`
-  and the `achievements/` + `cli/` folders, fill ONE file `achievements/S10Source.php` (SQL against their tables; required:
-  `db, currentUserId, users, isCoach, athleteIds, coachIds, changedUserIds, runs, plan, races, coaches, students`; the rest
-  optional, `null` = no such data → those achievements are not shown), `cli/check.php --user=ID`, `cli/recalc.php --history`
-  once, two cron lines (`worker.php` every 5 min, `nightly.php`), `cli/report.php` back to us. Brief: `backend/README.md`.
-- Frontend developer, about an hour: `/t5/achievements/achievements.js`, routes `/achievements/athlete` and
-  `/achievements/coach` serving `achievements.html` (`Cache-Control: no-cache`), `<div data-s10-achievements="widget"
-  data-id="ID">` in an athlete's profile and `"coach-widget"` in a coach's, a menu item. Brief: `frontend/ЗАДАНИЕ.md`.
+- Backend developer: copy `apiweb/achievements.php` into /apiweb/ and `achievements/` + `cli/` beside the web root,
+  `php cli/install.php` (the 12 ach_* tables), `cli/check.php --user=ID`, `cli/recalc.php --history` once, two cron lines
+  (`worker.php` every 5 min, `nightly.php`), `cli/report.php` back to us. Nothing to fill in. Brief: `backend/README.md`.
+- Frontend developer: `/t5/achievements/achievements.js` and `achievements.html`, one `.htaccess` line
+  (`^achievements/(athlete|coach)/?$ → /achievements.html [END]`, beside the solo ones), and two lines after
+  `<div id="root"></div>` in `t5/studentProfile.twig` / `t5/profile_trainer.twig`: `<div data-s10-achievements="widget"
+  data-id="auto">` (`coach-widget` for a coach) and the script. `data-id="auto"` = the id from `/profile?ID`. Menu items.
 - Everything else is ours.
 
 ## Files
@@ -74,7 +83,8 @@ anything newer). No WMA age-grading table yet, so the coach's «Уровень �
 ```
 node frontend/build.mjs                       # the release, the demo
 node tests/frontend.mjs                       # 149 checks; Chrome at the macOS path or $CHROME
-php backend/tests/run.php                     # 59 tests, 1 042 checks (needs pdo_sqlite: brew install php)
+php backend/tests/run.php                     # 59 tests, 1 020 checks (needs pdo_sqlite: brew install php)
+S10_SCHEMA=…/schema.sql MYSQL_PORT=3407 php backend/tests/mysql/s10source_mysql.php   # S10Source on MySQL, real schema
 php -S 127.0.0.1:8090 backend/dev/router.php  # the real API on SQLite fixtures: /dev/ lists users and states, ?as=ID logs in
 node tests/live.mjs                           # 95 checks against that server
 sh tools/release-backend.sh && sh tools/zip.sh ~/Desktop
@@ -112,6 +122,8 @@ about a minute later.
 
 ## Safety
 
-Never put the owner's real data (or anyone's) on the public repo or GitHub Pages without his explicit yes. Never ask for
-or accept passwords, server access or keys: the developers fill the adapter themselves. Read-only checks on the live site
-only with the owner's yes, as in s10-week's `s10-live-check` skill.
+Never put the owner's real data (or anyone's) on the public repo or GitHub Pages without his explicit yes, nor the site's
+schema dump or code files (S10Source.php names the site's tables and columns: whether that may be public is the owner's
+call, asked 10.11.2026). Never ask for or accept passwords, server access or keys: the adapter reads the site's own
+config on their server. Read-only checks on the live site only with the owner's yes, as in s10-week's
+`s10-live-check` skill.
